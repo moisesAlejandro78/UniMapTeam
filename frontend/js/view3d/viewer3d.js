@@ -310,13 +310,17 @@
     grupoPlanta = null;
   }
 
-  /* Centro logico de cada torre en la escena: los modelos se
-     colocan donde el plano 2D situa sus espacios. El desplazamiento
-     X de la torre 2 solo existe en el modo "ambas torres" (0),
-     igual que en el mapa 2D */
+    /* Centro lógico = mismo sistema que el mapa 2D.
+     2D dibuja la planta centrada en (400, 300).
+     Torre 2 en modo "ambas" se desplaza con OFFSET_TORRE_2. */
   function centroTorre(torre, edificioId) {
-    var offset = (torre === 2 && edificioId === 0) ? (UniMap.datos.OFFSET_TORRE_2 || 0) : 0;
-    return { x: 40 + 530 / 2 + offset, z: 40 + 470 / 2 };
+    var offset = (torre === 2 && edificioId === 0)
+      ? (UniMap.datos.OFFSET_TORRE_2 || 0)
+      : 0;
+    return {
+      x: 400 + offset,
+      z: 300
+    };
   }
 
   /* Carga el modelo GLB de la planta tipo del piso seleccionado
@@ -388,9 +392,8 @@
 
         if (restantes > 0) return;
 
-        ocultarCarga();
+                ocultarCarga();
         if (huboError) mostrarAviso(UniMap.i18n.t('v3.errorModelo'));
-        /* Los marcadores flotan justo encima del modelo cargado */
         alturaMarcaje = Math.max(12, Math.min(alturaMaxima + 4, 120));
         encuadrar();
         actualizarMarcadores();
@@ -398,48 +401,95 @@
     }
   }
 
-  /* Encuadra la camara sobre la planta actual (ambas torres en
-     modo combinado). Solo mueve la camara: no recarga modelos. */
+    /* Encuadra la cámara sobre la planta real (bounding box),
+     no sobre un rectángulo teórico desfasado. */
   function encuadrar() {
-    var offsetTorre2 = (edificioActual === 0 ? (UniMap.datos.OFFSET_TORRE_2 || 0) : 0);
-    var anchoTotal = 800 + offsetTorre2;
-    var fondoTotal = 600;
-    var altoTotal = alturaMarcaje;
+    if (!camara || !controles) return;
 
-    var extension = Math.max(anchoTotal, fondoTotal);
-    var base = extension * 2.2;
-    suelo.scale.set(base, base, 1);
-    cuadricula.scale.set(base, 1, base);
+    var caja = null;
+    if (grupoPlanta && grupoPlanta.children.length) {
+      caja = new THREE.Box3().setFromObject(grupoPlanta);
+    }
 
-    var distancia = extension * 1.5;
-    luzDireccional.position.set(distancia, extension * 2, distancia * 0.7);
-    luzDireccional.shadow.camera.left = -distancia;
-    luzDireccional.shadow.camera.right = distancia;
-    luzDireccional.shadow.camera.top = distancia;
-    luzDireccional.shadow.camera.bottom = -distancia;
-    luzDireccional.shadow.camera.far = extension * 8;
-    luzDireccional.shadow.camera.updateProjectionMatrix();
+    var minX, maxX, minZ, maxZ, altoTotal;
 
-    escena.fog.near = extension * 2;
-    escena.fog.far = extension * 6;
+    if (caja && isFinite(caja.min.x) && isFinite(caja.max.x)) {
+      minX = caja.min.x;
+      maxX = caja.max.x;
+      minZ = caja.min.z;
+      maxZ = caja.max.z;
+      altoTotal = Math.max(8, caja.max.y - caja.min.y);
+    } else {
+      /* Fallback si aún no hay modelo */
+      var offsetTorre2 = (edificioActual === 0 ? (UniMap.datos.OFFSET_TORRE_2 || 0) : 0);
+      minX = 0;
+      maxX = 800 + offsetTorre2;
+      minZ = 0;
+      maxZ = 600;
+      altoTotal = alturaMarcaje || 20;
+    }
 
-    var centroX = anchoTotal / 2;
-    var centroZ = fondoTotal / 2;
-    var maximo = Math.max(anchoTotal, fondoTotal, altoTotal);
+    var anchoTotal = Math.max(40, maxX - minX);
+    var fondoTotal = Math.max(40, maxZ - minZ);
+    var centroX = (minX + maxX) / 2;
+    var centroZ = (minZ + maxZ) / 2;
+    var extension = Math.max(anchoTotal, fondoTotal, 1);
+
+    /* Suelo + cuadrícula centrados en el modelo */
+    var base = extension * 2.4;
+    if (suelo) {
+      suelo.position.set(centroX, -0.02, centroZ);
+      suelo.scale.set(base, base, 1);
+    }
+    if (cuadricula) {
+      cuadricula.position.set(centroX, 0.01, centroZ);
+      cuadricula.scale.set(base, 1, base);
+    }
+
+    /* Luz */
+    var distanciaLuz = extension * 1.6;
+    if (luzDireccional) {
+      luzDireccional.position.set(
+        centroX + distanciaLuz * 0.6,
+        extension * 1.8,
+        centroZ + distanciaLuz * 0.5
+      );
+      luzDireccional.target.position.set(centroX, 0, centroZ);
+      if (luzDireccional.target.parent !== escena) escena.add(luzDireccional.target);
+      luzDireccional.shadow.camera.left = -distanciaLuz;
+      luzDireccional.shadow.camera.right = distanciaLuz;
+      luzDireccional.shadow.camera.top = distanciaLuz;
+      luzDireccional.shadow.camera.bottom = -distanciaLuz;
+      luzDireccional.shadow.camera.far = extension * 10;
+      luzDireccional.shadow.camera.updateProjectionMatrix();
+    }
+
+    if (escena.fog) {
+      escena.fog.near = extension * 2.2;
+      escena.fog.far = extension * 7;
+    }
+
+    /* Vista cercana al 2D: casi cenital, ligera perspectiva */
     var fov = camara.fov * Math.PI / 180;
-    var distCam = (maximo / 2) / Math.tan(fov / 2) * 1.4;
+    var maximo = Math.max(anchoTotal, fondoTotal, altoTotal);
+    var distCam = (maximo / 2) / Math.tan(fov / 2) * 1.55;
 
-    controles.target.set(centroX, altoTotal * 0.3, centroZ);
+    var targetY = altoTotal * 0.15;
+    controles.target.set(centroX, targetY, centroZ);
+
+    /* Cámara arriba-atrás: se parece al plano 2D */
     camara.position.set(
-      centroX + distCam * 0.4,
-      altoTotal * 0.5 + distCam * 0.4,
-      centroZ + distCam * 0.85
+      centroX,
+      targetY + distCam * 0.92,
+      centroZ + distCam * 0.55
     );
-    camara.near = maximo / 300;
-    camara.far = maximo * 40;
+
+    camara.near = Math.max(0.1, maximo / 400);
+    camara.far = maximo * 50;
     camara.updateProjectionMatrix();
-    controles.minDistance = maximo * 0.1;
-    controles.maxDistance = maximo * 8;
+
+    controles.minDistance = maximo * 0.08;
+    controles.maxDistance = maximo * 10;
     controles.update();
   }
 
@@ -479,9 +529,8 @@
   /* Posicion de un espacio sobre la planta 2D renderizada en 3D.
      estado.espacios ya trae las coordenadas finales (en modo "ambas
      torres" la torre 2 viene desplazada), asi que no se suma nada. */
-  function calcularPosicion(espacio) {
+    function calcularPosicion(espacio) {
     if (!grupoPlanta) return null;
-
     return new THREE.Vector3(
       espacio.x + espacio.ancho / 2,
       alturaMarcaje,
@@ -1038,16 +1087,23 @@
   /* =========================================================
      ACTIVAR / DESACTIVAR VISTA 3D
      ========================================================= */
-  function activar() {
+    function activar() {
     activo = true;
     contenedor.classList.remove('hidden');
 
     if (!crearEscena()) return;
 
     redimensionar();
+    sincronizarEstado(true);
 
-    /* Renderizar la planta actual (edificio + piso) */
-    sincronizarEstado();
+    /* Asegura encuadre cuando el layout ya tiene tamaño */
+    requestAnimationFrame(function () {
+      redimensionar();
+      if (grupoPlanta && grupoPlanta.children.length) {
+        encuadrar();
+        actualizarMarcadores();
+      }
+    });
 
     if (espacioPendiente) {
       var pendiente = espacioPendiente;
