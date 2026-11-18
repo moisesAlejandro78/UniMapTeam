@@ -79,7 +79,7 @@
       new THREE.FBXLoader().load(CARPETA + archivo, listo, undefined, fallo);
     } else {
       if (typeof THREE.GLTFLoader === 'undefined') return fallo(new Error('GLTFLoader no disponible'));
-      new THREE.GLTFLoader().load(CARPETA + archivo + '?v=' + Date.now(), function (gltf) {
+      new THREE.GLTFLoader().load(CARPETA + archivo + '?t=' + Date.now(), function (gltf) {
         listo(gltf.scene);
       }, undefined, fallo);
     }
