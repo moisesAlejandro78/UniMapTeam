@@ -37,7 +37,7 @@ UniMap.datos.MODELOS_PISOS = [
   { archivo: 'TorreAntiguaBanos.glb', edificio: 1, pisos: [4, 6, 8, 10] },
   { archivo: 'TorreAntiguaConexion.glb', edificio: 1, pisos: [5, 9] },
   { archivo: 'TorreAntiguaCursos.glb', edificio: 1, pisos: [7, 11, 13, 14, 15, 16, 17] },
-  { archivo: 'TorreInnovacionCasilleros.glb', edificio: 2, pisos: [4, 7, 8, 9, 11] },
+  { archivo: 'TorreInnovacionCasilleros_v2.glb', edificio: 2, pisos: [4, 7, 8, 9, 11] },
   { archivo: 'TorreInnovacionConexion_v2.glb', edificio: 2, pisos: [6, 10] },
   { archivo: 'planta-baja-torre-b.fbx', edificio: 2, pisos: [0] }
 ];
