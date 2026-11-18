@@ -79,7 +79,7 @@
       new THREE.FBXLoader().load(CARPETA + archivo, listo, undefined, fallo);
     } else {
       if (typeof THREE.GLTFLoader === 'undefined') return fallo(new Error('GLTFLoader no disponible'));
-      new THREE.GLTFLoader().load(CARPETA + archivo, function (gltf) {
+      new THREE.GLTFLoader().load(CARPETA + archivo + '?v=' + Date.now(), function (gltf) {
         listo(gltf.scene);
       }, undefined, fallo);
     }
@@ -295,7 +295,8 @@
   /* Nivel de dibujo de una pieza: 0 suelo, 1 mobiliario, 2 muro */
   function nivelPieza(pieza, info, areaPlancha) {
     if (pieza.area > areaPlancha * 0.15 && pieza.altura < info.altura * 0.2) return 0;
-    if (pieza.altura > info.altura * 0.45) return 2;
+    /* Antes 0.45: en TI muchas paredes son más bajas y no se detectaban */
+    if (pieza.altura > info.altura * 0.28) return 2;
     return 1;
   }
 
@@ -481,33 +482,90 @@
   function invalidarPlanos() {
     cachePlanos = {};
   }
+  /* ═══ MÁSCARA DE NAVEGACIÓN (rutas) ═══════════════════
+     TA: materiales con nombre pared/wall.
+     TI: mismas piezas “muro” que usa el plano 2D (altura). */
+  var CELDA_NAV = 4;
+  var ANCHO_MAPA = 800;
+  var ALTO_MAPA = 600;
+  var cacheMascaras = {};
+  var pendientesMascaras = {};
+  var RE_MURO = /pared|wall|muro|paint|plaster|yeso|ladrillo|brick|drywall|gypsum|revoque/i;
+  var RE_COLUMNA = /hormigon|concrete|column|columna|pilar/i;
 
-
-  /* ═══ MASCARA DE NAVEGACION (rutas) ═══════════════════
-     Rasteriza los MUROS reales del modelo (mallas de material
-     "pared_pintura", columnas de hormigon) sobre el mismo plano
-     800x600 del mapa, para que las rutas solo crucen por las
-     aberturas (puertas) y no atraviesen paredes. Lo que queda
-     fuera del contorno del edificio tambien se bloquea.
-     Resultado: { celda, cols, filas, data (1 = bloqueado),
-                  metrosPorUnidad } o null si el modelo no tiene
-     paredes reconocibles. */
-  var CELDA_NAV = 4, ANCHO_MAPA = 800, ALTO_MAPA = 600;
-  var cacheMascaras = {}, pendientesMascaras = {};
-  var RE_MURO = /pared|wall|muro/i, RE_COLUMNA = /hormigon|concrete|column/i;
-
-  function esMuro(objeto) {
+  function esMuroPorNombre(objeto) {
     var mats = Array.isArray(objeto.material) ? objeto.material : [objeto.material];
-    for (var i = 0; i < mats.length; i++) {
-      var n = (mats[i] && mats[i].name) || '';
+    var i, n;
+    for (i = 0; i < mats.length; i++) {
+      n = ((mats[i] && mats[i].name) || '') + ' ' + (objeto.name || '');
       if (RE_MURO.test(n) || RE_COLUMNA.test(n)) return true;
     }
-    return RE_MURO.test(objeto.name || '');
+    return false;
+  }
+
+  function rasterizarTriangulos(o, aPlano, marcar, puntosMuro, v) {
+    var pos = o.geometry.attributes.position;
+    var idx = o.geometry.index;
+    if (!pos) return;
+    var pts = [];
+    var i;
+    for (i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
+      pts.push(aPlano(v.x, v.z));
+    }
+    var n = idx ? idx.count : pos.count;
+    for (var t = 0; t + 2 < n; t += 3) {
+      var a = pts[idx ? idx.getX(t) : t];
+      var b = pts[idx ? idx.getX(t + 1) : t + 1];
+      var c = pts[idx ? idx.getX(t + 2) : t + 2];
+      if (!a || !b || !c) continue;
+      puntosMuro.push(a, b, c);
+      var larga = Math.max(
+        Math.hypot(a[0] - b[0], a[1] - b[1]),
+        Math.hypot(b[0] - c[0], b[1] - c[1]),
+        Math.hypot(a[0] - c[0], a[1] - c[1])
+      );
+      var paso = Math.max(1, Math.ceil(larga / (CELDA_NAV / 2)));
+      for (var i1 = 0; i1 <= paso; i1++) {
+        for (var j1 = 0; j1 + i1 <= paso; j1++) {
+          var u = i1 / paso;
+          var q = j1 / paso;
+          var r = 1 - u - q;
+          marcar(a[0] * r + b[0] * u + c[0] * q, a[1] * r + b[1] * u + c[1] * q);
+        }
+      }
+    }
+  }
+
+  /* Rellena borde de un contorno 2D (pared proyectada) */
+  function rasterizarContorno(contorno, aPlanoModelo, marcar, puntosMuro) {
+    if (!contorno || contorno.length < 2) return;
+    var i, a, b, larga, paso, t, x, y;
+    for (i = 0; i < contorno.length; i++) {
+      a = aPlanoModelo(contorno[i][0], contorno[i][1]);
+      b = aPlanoModelo(
+        contorno[(i + 1) % contorno.length][0],
+        contorno[(i + 1) % contorno.length][1]
+      );
+      puntosMuro.push(a, b);
+      larga = Math.hypot(a[0] - b[0], a[1] - b[1]);
+      paso = Math.max(1, Math.ceil(larga / (CELDA_NAV / 2)));
+      for (t = 0; t <= paso; t++) {
+        x = a[0] + (b[0] - a[0]) * (t / paso);
+        y = a[1] + (b[1] - a[1]) * (t / paso);
+        marcar(x, y);
+        /* grosor de muro ~ 1 celda */
+        marcar(x + CELDA_NAV * 0.4, y);
+        marcar(x - CELDA_NAV * 0.4, y);
+        marcar(x, y + CELDA_NAV * 0.4);
+        marcar(x, y - CELDA_NAV * 0.4);
+      }
+    }
   }
 
   function construirMascara(grupo, info) {
-    /* misma proyeccion que pintarPlano() y dibujarPlantaTorre() */
-    var LARGO = 1100, margen = 16;
+    var LARGO = 1100;
+    var margen = 16;
     var aspecto = Math.max(info.ancho, 1e-6) / Math.max(info.fondo, 1e-6);
     var w = aspecto >= 1 ? LARGO : Math.round(LARGO * aspecto);
     var h = aspecto >= 1 ? Math.round(LARGO / aspecto) : LARGO;
@@ -515,88 +573,270 @@
     var desplX = (w - info.ancho * escala) / 2 - info.minX * escala;
     var desplZ = (h - info.fondo * escala) / 2 - info.minZ * escala;
     var s2 = Math.min(530 / w, 470 / h);
-    var ox = 135 + (530 - w * s2) / 2, oy = 65 + (470 - h * s2) / 2;
-    function aPlano(x, z) { return [ox + (x * escala + desplX) * s2, oy + (z * escala + desplZ) * s2]; }
+    var ox = 135 + (530 - w * s2) / 2;
+    var oy = 65 + (470 - h * s2) / 2;
 
-    var cols = Math.ceil(ANCHO_MAPA / CELDA_NAV), filas = Math.ceil(ALTO_MAPA / CELDA_NAV);
+    function aPlano(x, z) {
+      return [ox + (x * escala + desplX) * s2, oy + (z * escala + desplZ) * s2];
+    }
+
+    var cols = Math.ceil(ANCHO_MAPA / CELDA_NAV);
+    var filas = Math.ceil(ALTO_MAPA / CELDA_NAV);
     var data = new Uint8Array(cols * filas);
-    var puntosMuro = [], hayMuros = false;
+    var puntosMuro = [];
+    var hayMuros = false;
     var v = new THREE.Vector3();
 
     function marcar(x, y) {
-      var c = Math.floor(x / CELDA_NAV), f = Math.floor(y / CELDA_NAV);
+      var c = Math.floor(x / CELDA_NAV);
+      var f = Math.floor(y / CELDA_NAV);
       if (c >= 0 && f >= 0 && c < cols && f < filas) data[f * cols + c] = 1;
     }
 
     grupo.updateMatrixWorld(true);
-    grupo.traverse(function (o) {
-      if (!o.isMesh || !o.visible || !o.geometry || !esMuro(o)) return;
-      var pos = o.geometry.attributes.position, idx = o.geometry.index;
-      if (!pos) return;
-      hayMuros = true;
-      var pts = [];
-      for (var i = 0; i < pos.count; i++) {
-        v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
-        pts.push(aPlano(v.x, v.z));
-      }
-      var n = idx ? idx.count : pos.count;
-      for (var t = 0; t + 2 < n; t += 3) {
-        var a = pts[idx ? idx.getX(t) : t], b = pts[idx ? idx.getX(t + 1) : t + 1], c = pts[idx ? idx.getX(t + 2) : t + 2];
-        puntosMuro.push(a, b, c);
-        var larga = Math.max(Math.hypot(a[0] - b[0], a[1] - b[1]), Math.hypot(b[0] - c[0], b[1] - c[1]), Math.hypot(a[0] - c[0], a[1] - c[1]));
-        var paso = Math.max(1, Math.ceil(larga / (CELDA_NAV / 2)));
-        for (var i1 = 0; i1 <= paso; i1++) {
-          for (var j1 = 0; j1 + i1 <= paso; j1++) {
-            var u = i1 / paso, q = j1 / paso, r = 1 - u - q;
-            marcar(a[0] * r + b[0] * u + c[0] * q, a[1] * r + b[1] * u + c[1] * q);
-          }
-        }
-      }
-    });
-    if (!hayMuros) return null;
 
-    /* Fuera del contorno (envolvente convexa) de los muros = bloqueado */
+    /* 1) TA / modelos con nombre de material */
+    grupo.traverse(function (o) {
+      if (!o.isMesh || !o.visible || !o.geometry) return;
+      if (!esMuroPorNombre(o)) return;
+      hayMuros = true;
+      rasterizarTriangulos(o, aPlano, marcar, puntosMuro, v);
+    });
+
+    /* 2) TI: piezas altas O contornos alargados (paredes sin nombre) */
+    if (!hayMuros) {
+      var piezas = piezasDelModelo(grupo);
+      var areaPlancha = Math.max(info.ancho, 1e-6) * Math.max(info.fondo, 1e-6);
+      var p, perim, k, a, b, ratio;
+      for (p = 0; p < piezas.length; p++) {
+        var pz = piezas[p];
+        var esMuroAltura = nivelPieza(pz, info, areaPlancha) === 2;
+        perim = 0;
+        for (k = 0; k < pz.contorno.length; k++) {
+          a = pz.contorno[k];
+          b = pz.contorno[(k + 1) % pz.contorno.length];
+          perim += Math.hypot(a[0] - b[0], a[1] - b[1]);
+        }
+        ratio = perim * perim / Math.max(pz.area, 1e-9);
+        /* ratio alto = forma alargada (muro), no un bloque de habitación */
+        var esMuroForma = ratio > 40 && pz.area < areaPlancha * 0.12;
+        if (!esMuroAltura && !esMuroForma) continue;
+        hayMuros = true;
+        rasterizarContorno(pz.contorno, aPlano, marcar, puntosMuro);
+      }
+    }
+    if (!hayMuros || puntosMuro.length < 4) {
+      return null;
+    }
+    /* Fuera del edificio = bloqueado */
     var casco = envolver(puntosMuro);
     function dentro(x, y) {
       var signo = 0;
-      for (var k = 0; k < casco.length; k++) {
-        var p1 = casco[k], p2 = casco[(k + 1) % casco.length];
-        var cr = (p2[0] - p1[0]) * (y - p1[1]) - (p2[1] - p1[1]) * (x - p1[0]);
-        if (cr !== 0) { if (signo === 0) signo = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== signo) return false; }
+      var k, p1, p2, cr;
+      for (k = 0; k < casco.length; k++) {
+        p1 = casco[k];
+        p2 = casco[(k + 1) % casco.length];
+        cr = (p2[0] - p1[0]) * (y - p1[1]) - (p2[1] - p1[1]) * (x - p1[0]);
+        if (cr !== 0) {
+          if (signo === 0) signo = cr > 0 ? 1 : -1;
+          else if ((cr > 0 ? 1 : -1) !== signo) return false;
+        }
       }
       return true;
     }
-    for (var f = 0; f < filas; f++)
-      for (var c = 0; c < cols; c++)
-        if (!dentro((c + 0.5) * CELDA_NAV, (f + 0.5) * CELDA_NAV)) data[f * cols + c] = 1;
 
-    return { celda: CELDA_NAV, cols: cols, filas: filas, data: data,
-             metrosPorUnidad: info.ancho / (info.ancho * escala * s2) };
+    var bloqueadas = 0;
+    var total = cols * filas;
+    var f, c;
+    for (f = 0; f < filas; f++) {
+      for (c = 0; c < cols; c++) {
+        if (!dentro((c + 0.5) * CELDA_NAV, (f + 0.5) * CELDA_NAV)) {
+          data[f * cols + c] = 1;
+        }
+        if (data[f * cols + c] === 1) bloqueadas++;
+      }
+    }
+
+    /* Máscara demasiado densa = inutilizable */
+    if (bloqueadas / total > 0.88) {
+      return null;
+    }
+
+    return {
+      celda: CELDA_NAV,
+      cols: cols,
+      filas: filas,
+      data: data,
+      metrosPorUnidad: info.ancho / (info.ancho * escala * s2)
+    };
+  }
+  /* Máscara de respaldo: solo aulas (para TI sin materiales de pared) */
+  /* Máscara por aulas (pensada para TI).
+   - Dentro del edificio: libre
+   - Interior de cada aula: bloqueado (borde libre = pasillo)
+   - Fuera del edificio: bloqueado */
+  /* Máscara por aulas + hueco de puerta hacia el centro del edificio */
+  function construirMascaraDesdeEspacios(edificio, piso) {
+    var cols = Math.ceil(ANCHO_MAPA / CELDA_NAV);
+    var filas = Math.ceil(ALTO_MAPA / CELDA_NAV);
+    var data = new Uint8Array(cols * filas);
+    var i, e, x1, y1, x2, y2, fx, fy, c, f;
+
+    var todos = (UniMap.estado && UniMap.estado.todosLosEspacios && UniMap.estado.todosLosEspacios.length)
+      ? UniMap.estado.todosLosEspacios
+      : ((UniMap.estado && UniMap.estado.espacios) || []);
+
+    var lista = [];
+    for (i = 0; i < todos.length; i++) {
+      e = todos[i];
+      if (!e || e.edificio !== edificio || e.piso !== piso) continue;
+      if (e.estado === 'inactivo') continue;
+      if (!isFinite(e.x) || !isFinite(e.y)) continue;
+      lista.push(e);
+    }
+    if (!lista.length) return null;
+
+    for (i = 0; i < data.length; i++) data[i] = 0;
+
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (i = 0; i < lista.length; i++) {
+      e = lista[i];
+      minX = Math.min(minX, e.x);
+      minY = Math.min(minY, e.y);
+      maxX = Math.max(maxX, e.x + (e.ancho || 20));
+      maxY = Math.max(maxY, e.y + (e.alto || 20));
+    }
+    minX = Math.max(0, minX - 28);
+    minY = Math.max(0, minY - 28);
+    maxX = Math.min(ANCHO_MAPA, maxX + 28);
+    maxY = Math.min(ALTO_MAPA, maxY + 28);
+
+    var cMin = Math.floor(minX / CELDA_NAV);
+    var fMin = Math.floor(minY / CELDA_NAV);
+    var cMax = Math.min(cols - 1, Math.floor(maxX / CELDA_NAV));
+    var fMax = Math.min(filas - 1, Math.floor(maxY / CELDA_NAV));
+    for (f = 0; f < filas; f++) {
+      for (c = 0; c < cols; c++) {
+        if (c < cMin || c > cMax || f < fMin || f > fMax) data[f * cols + c] = 1;
+      }
+    }
+
+    var cxEd = (minX + maxX) / 2;
+    var cyEd = (minY + maxY) / 2;
+    var reConector = /escalera|ascensor|elevador|stair|lift|elevator/i;
+
+    for (i = 0; i < lista.length; i++) {
+      e = lista[i];
+      if (reConector.test(e.tipo || '') || reConector.test(e.nombre || '')) continue;
+
+      x1 = Math.floor(e.x / CELDA_NAV);
+      y1 = Math.floor(e.y / CELDA_NAV);
+      x2 = Math.floor((e.x + (e.ancho || 20) - 1) / CELDA_NAV);
+      y2 = Math.floor((e.y + (e.alto || 20) - 1) / CELDA_NAV);
+
+      /* Bloquear el rectángulo completo del aula */
+      for (fy = y1; fy <= y2; fy++) {
+        if (fy < 0 || fy >= filas) continue;
+        for (fx = x1; fx <= x2; fx++) {
+          if (fx < 0 || fx >= cols) continue;
+          data[fy * cols + fx] = 1;
+        }
+      }
+
+      /* Puerta: abrir 3 celdas en el lado más cercano al centro del edificio */
+      var mx = e.x + (e.ancho || 20) / 2;
+      var my = e.y + (e.alto || 20) / 2;
+      var dx = cxEd - mx;
+      var dy = cyEd - my;
+      var puerta = 3;
+      var k;
+
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        /* Puerta en pared izquierda o derecha */
+        var px = dx > 0 ? x2 : x1;
+        var py = Math.floor(my / CELDA_NAV);
+        for (k = -1; k <= 1; k++) {
+          var yy = py + k;
+          if (yy >= 0 && yy < filas && px >= 0 && px < cols) data[yy * cols + px] = 0;
+          if (yy >= 0 && yy < filas && px + (dx > 0 ? 1 : -1) >= 0 && px + (dx > 0 ? 1 : -1) < cols) {
+            data[yy * cols + (px + (dx > 0 ? 1 : -1))] = 0;
+          }
+        }
+      } else {
+        /* Puerta en pared superior o inferior */
+        var py2 = dy > 0 ? y2 : y1;
+        var px2 = Math.floor(mx / CELDA_NAV);
+        for (k = -1; k <= 1; k++) {
+          var xx = px2 + k;
+          if (xx >= 0 && xx < cols && py2 >= 0 && py2 < filas) data[py2 * cols + xx] = 0;
+          if (xx >= 0 && xx < cols && py2 + (dy > 0 ? 1 : -1) >= 0 && py2 + (dy > 0 ? 1 : -1) < filas) {
+            data[(py2 + (dy > 0 ? 1 : -1)) * cols + xx] = 0;
+          }
+        }
+      }
+    }
+
+    return {
+      celda: CELDA_NAV,
+      cols: cols,
+      filas: filas,
+      data: data,
+      metrosPorUnidad: 0.12,
+      desdeEspacios: true
+    };
   }
 
   function mascaraNavegacion(edificio, piso, cb) {
     var clave = edificio + '-' + piso;
     if (clave in cacheMascaras) return cb(null, cacheMascaras[clave]);
-    if (pendientesMascaras[clave]) { pendientesMascaras[clave].push(cb); return; }
+    if (pendientesMascaras[clave]) {
+      pendientesMascaras[clave].push(cb);
+      return;
+    }
     pendientesMascaras[clave] = [cb];
+
     function fin(err, m) {
       if (!err) cacheMascaras[clave] = m;
-      var l = pendientesMascaras[clave] || []; pendientesMascaras[clave] = null;
+      var l = pendientesMascaras[clave] || [];
+      pendientesMascaras[clave] = null;
       for (var i = 0; i < l.length; i++) l[i](err, m);
     }
+
     var def = UniMap.datos.modeloDePiso ? UniMap.datos.modeloDePiso(edificio, piso) : null;
-    if (!def) return fin(null, null);
+
+    /* Sin modelo 3D → solo aulas */
+    if (!def) {
+      return fin(null, construirMascaraDesdeEspacios(edificio, piso));
+    }
+
+    /* TA y TI: intentar GLB (muros reales). Si falla → aulas con puertas */
     clonar(def.archivo, function (err, grupo) {
-      if (err) return fin(null, null);
-      try { fin(null, construirMascara(grupo, preparar(grupo))); } catch (e) { fin(null, null); }
+      if (err) {
+        return fin(null, construirMascaraDesdeEspacios(edificio, piso));
+      }
+      try {
+        var m = construirMascara(grupo, preparar(grupo));
+        if (!m) m = construirMascaraDesdeEspacios(edificio, piso);
+        fin(null, m);
+      } catch (e) {
+        console.warn('[UniMap] máscara', edificio, piso, e);
+        fin(null, construirMascaraDesdeEspacios(edificio, piso));
+      }
     });
   }
 
-  function mascaraListaSync(edificio, piso) { return cacheMascaras[edificio + '-' + piso] || null; }
+  function mascaraListaSync(edificio, piso) {
+    return cacheMascaras[edificio + '-' + piso] || null;
+  }
+
+  function invalidarMascaras() {
+    cacheMascaras = {};
+  }
 
   UniMap.modelos = {
     mascaraNavegacion: mascaraNavegacion,
     mascaraListaSync: mascaraListaSync,
+    invalidarMascaras: invalidarMascaras,
     cargar: cargar,
     clonar: clonar,
     preparar: preparar,

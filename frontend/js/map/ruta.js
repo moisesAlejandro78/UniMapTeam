@@ -127,7 +127,7 @@
 
   function esConector(e) {
     return RE_ESCALERA.test(e.tipo || '') || RE_ESCALERA.test(e.nombre || '') ||
-           RE_ASCENSOR.test(e.tipo || '') || RE_ASCENSOR.test(e.nombre || '');
+      RE_ASCENSOR.test(e.tipo || '') || RE_ASCENSOR.test(e.nombre || '');
   }
 
   function celdasDe(e) {
@@ -148,8 +148,7 @@
     libres = libres || {};
     var i, fy, fx;
     mpuActual = METROS_POR_UNIDAD;
-    if (mascara) {
-      /* Muros reales del modelo 3D: solo se cruza por las puertas */
+        if (mascara) {
       mpuActual = mascara.metrosPorUnidad || METROS_POR_UNIDAD;
       for (fy = 0; fy < FILAS; fy++)
         for (fx = 0; fx < COLS; fx++) grid[fy][fx] = mascara.data[fy * mascara.cols + fx];
@@ -164,14 +163,22 @@
             }
           }
       }
-      espacios = [];
+      /* Si la máscara ya viene de aulas, no volver a pintar rectángulos */
+      if (mascara.desdeEspacios) espacios = [];
+      else espacios = [];
     }
     for (i = 0; i < (espacios || []).length; i++) {
       var e = espacios[i];
       if (!e || e.estado === 'inactivo' || libres[e.id] || esConector(e)) continue;
       var r = celdasDe(e);
-      for (fy = r.y1; fy <= r.y2; fy++)
-        for (fx = r.x1; fx <= r.x2; fx++) grid[fy][fx] = 1;
+      var margen = mascara ? 0 : 1;
+      var y1 = r.y1 + margen, y2 = r.y2 - margen;
+      var x1 = r.x1 + margen, x2 = r.x2 - margen;
+      if (y2 < y1 || x2 < x1) {
+        y1 = r.y1; y2 = r.y2; x1 = r.x1; x2 = r.x2;
+      }
+      for (fy = y1; fy <= y2; fy++)
+        for (fx = x1; fx <= x2; fx++) grid[fy][fx] = 1;
     }
     for (var p = 0; p < PUERTAS.length && !mascara; p++) {
       var pu = PUERTAS[p];
@@ -238,7 +245,7 @@
     if (a.length) {
       a[0] = last;
       var i = 0, n = a.length;
-      for (;;) {
+      for (; ;) {
         var l = 2 * i + 1, r = l + 1, m = i;
         if (l < n && a[l].f < a[m].f) m = l;
         if (r < n && a[r].f < a[m].f) m = r;
@@ -250,7 +257,7 @@
   };
 
   var DIRS = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1],
-              [1, 1, 1.4142], [1, -1, 1.4142], [-1, 1, 1.4142], [-1, -1, 1.4142]];
+  [1, 1, 1.4142], [1, -1, 1.4142], [-1, 1, 1.4142], [-1, -1, 1.4142]];
 
   function octil(c1, f1, c2, f2) {
     var dx = Math.abs(c1 - c2), dy = Math.abs(f1 - f2);
@@ -282,7 +289,7 @@
         if (nc < 0 || nf < 0 || nc >= COLS || nf >= FILAS || grid[nf][nc] === 1) continue;
         /* diagonal: no cortar esquinas */
         if (DIRS[d][0] !== 0 && DIRS[d][1] !== 0 &&
-            (grid[cf0][nc] === 1 || grid[nf][cc] === 1)) continue;
+          (grid[cf0][nc] === 1 || grid[nf][cc] === 1)) continue;
         var nk = nf * COLS + nc;
         if (cerrado[nk]) continue;
         var costo = DIRS[d][2] * (1 + (cercaPared[nf][nc] ? 0.6 : 0));
@@ -301,7 +308,7 @@
     var dc = Math.abs(c1 - c0), df = Math.abs(f1 - f0);
     var sc = c0 < c1 ? 1 : -1, sf = f0 < f1 ? 1 : -1;
     var err = dc - df, c = c0, f = f0;
-    for (;;) {
+    for (; ;) {
       if (grid[f][c] === 1) return false;
       if (c === c1 && f === f1) return true;
       var e2 = 2 * err, pc = c, pf = f;
@@ -335,12 +342,12 @@
     var mascara = (UniMap.modelos && UniMap.modelos.mascaraListaSync)
       ? UniMap.modelos.mascaraListaSync(edificio, piso) : null;
     var camino = null, li = null, lf = null, inflar;
-    for (inflar = mascara ? 1 : 0; inflar >= 0 && !camino; inflar--) {
+    for (inflar = 0; inflar <= (mascara ? 1 : 0) && !camino; inflar++) {
       reconstruirGrid(espaciosDePlanta(edificio, piso), libres, mascara, inflar);
       var ci = mundoACelda(a.x, a.y), cf = mundoACelda(b.x, b.y);
-      li = celdaLibreCercana(ci.c, ci.f); lf = celdaLibreCercana(cf.c, cf.f);
+      li = celdaLibreCercana(ci.c, ci.f);
+      lf = celdaLibreCercana(cf.c, cf.f);
       camino = (li && lf) ? astar(li.c, li.f, lf.c, lf.f) : null;
-      if (!mascara) break;
     }
     var puntos = [], aproximada = false;
     var ini = li ? celdaAMundo(li.c, li.f) : a, fin = lf ? celdaAMundo(lf.c, lf.f) : b;
@@ -406,7 +413,7 @@
   }
   function nombrePlanta(ed, piso) {
     return (datos.nombreEdificio ? datos.nombreEdificio(ed) : 'Torre ' + ed) + ' · ' +
-           (datos.nombrePiso ? datos.nombrePiso(piso) : 'Piso ' + piso);
+      (datos.nombrePiso ? datos.nombrePiso(piso) : 'Piso ' + piso);
   }
 
   /* =========================================================
@@ -419,8 +426,10 @@
     /* tramo caminando dentro de una planta */
     function caminar(ed, piso, a, b, libres, etiqueta) {
       var r = caminoEnPlanta(ed, piso, a, b, libres);
-      tramos.push({ edificio: ed, piso: piso, puntos: r.puntos, metros: r.metros,
-                    tipo: 'caminata', etiqueta: etiqueta || nombrePlanta(ed, piso), aproximada: r.aproximada, mpu: r.mpu });
+      tramos.push({
+        edificio: ed, piso: piso, puntos: r.puntos, metros: r.metros,
+        tipo: 'caminata', etiqueta: etiqueta || nombrePlanta(ed, piso), aproximada: r.aproximada, mpu: r.mpu
+      });
       return r;
     }
 
@@ -437,8 +446,10 @@
       if (usarAsc && opcionAsc.estimado) aviso = 'rut.sinAscensor';
       /* en el piso destino se sale por el mismo conector (si existe ahi) */
       var salida = conectorCercano(ed, pisoB, elige, con);
-      return { tipo: elige, entrada: con, salida: salida, n: n,
-               costo: elige === 'ascensor' ? costoAsc : costoEsc };
+      return {
+        tipo: elige, entrada: con, salida: salida, n: n,
+        costo: elige === 'ascensor' ? costoAsc : costoEsc
+      };
     }
 
     var mismaTorre = origen.edificio === destino.edificio;
@@ -448,9 +459,11 @@
     } else if (mismaTorre) {
       var cp = cambiarPiso(origen.edificio, origen.piso, destino.piso, origen);
       caminar(origen.edificio, origen.piso, origen, cp.entrada, {});
-      tramos.push({ edificio: origen.edificio, piso: origen.piso, puntos: [], metros: 0, tipo: 'conector',
-                    conector: cp.tipo, hacia: { edificio: destino.edificio, piso: destino.piso }, n: cp.n,
-                    etiqueta: nombrePlanta(origen.edificio, origen.piso), metrosEq: cp.costo });
+      tramos.push({
+        edificio: origen.edificio, piso: origen.piso, puntos: [], metros: 0, tipo: 'conector',
+        conector: cp.tipo, hacia: { edificio: destino.edificio, piso: destino.piso }, n: cp.n,
+        etiqueta: nombrePlanta(origen.edificio, origen.piso), metrosEq: cp.costo
+      });
       caminar(destino.edificio, destino.piso, cp.salida, destino, { [destino.id]: true });
     } else {
       /* Entre torres: elegir el puente con menos pisos que subir/bajar */
@@ -458,11 +471,11 @@
       for (var i = 0; i < PUENTES.length; i++) {
         var pa = PUENTES[i][0], pb = PUENTES[i][1];
         var costo = (origen.piso === pa ? 0 : pisosEntre(origen.edificio, origen.piso, pa)) +
-                    (destino.piso === pb ? 0 : pisosEntre(destino.edificio, pb, destino.piso));
+          (destino.piso === pb ? 0 : pisosEntre(destino.edificio, pb, destino.piso));
         if (origen.edificio === 2) {
           pa = PUENTES[i][1]; pb = PUENTES[i][0];
           costo = (origen.piso === pa ? 0 : pisosEntre(2, origen.piso, pa)) +
-                  (destino.piso === pb ? 0 : pisosEntre(1, pb, destino.piso));
+            (destino.piso === pb ? 0 : pisosEntre(1, pb, destino.piso));
         }
         if (costo < mc) { mc = costo; mejor = { pa: pa, pb: pb }; }
       }
@@ -470,24 +483,30 @@
       if (origen.piso !== hacia) {
         var c1 = cambiarPiso(origen.edificio, origen.piso, hacia, origen);
         caminar(origen.edificio, origen.piso, origen, c1.entrada, {});
-        tramos.push({ edificio: origen.edificio, piso: origen.piso, puntos: [], metros: 0, tipo: 'conector',
-                      conector: c1.tipo, hacia: { edificio: origen.edificio, piso: hacia }, n: c1.n,
-                      etiqueta: nombrePlanta(origen.edificio, origen.piso), metrosEq: c1.costo });
+        tramos.push({
+          edificio: origen.edificio, piso: origen.piso, puntos: [], metros: 0, tipo: 'conector',
+          conector: c1.tipo, hacia: { edificio: origen.edificio, piso: hacia }, n: c1.n,
+          etiqueta: nombrePlanta(origen.edificio, origen.piso), metrosEq: c1.costo
+        });
         cur = { x: c1.salida.x, y: c1.salida.y };
       }
       /* cruce: punto medio del pasillo -> pasillo de la otra torre */
       var finA = { x: PUNTO_DEFECTO.x, y: PUNTO_DEFECTO.y };
       caminar(origen.edificio, hacia, cur, finA, origen.piso === hacia ? {} : {});
-      tramos.push({ edificio: destino.edificio, piso: mejor.pb, puntos: [], metros: 0, tipo: 'puente',
-                    etiqueta: nombrePlanta(origen.edificio, hacia), metrosEq: METROS_PUENTE,
-                    hacia: { edificio: destino.edificio, piso: mejor.pb } });
+      tramos.push({
+        edificio: destino.edificio, piso: mejor.pb, puntos: [], metros: 0, tipo: 'puente',
+        etiqueta: nombrePlanta(origen.edificio, hacia), metrosEq: METROS_PUENTE,
+        hacia: { edificio: destino.edificio, piso: mejor.pb }
+      });
       var inicioB = { x: PUNTO_DEFECTO.x, y: PUNTO_DEFECTO.y };
       if (destino.piso !== mejor.pb) {
         var c2 = cambiarPiso(destino.edificio, mejor.pb, destino.piso, inicioB);
         caminar(destino.edificio, mejor.pb, inicioB, c2.entrada, {});
-        tramos.push({ edificio: destino.edificio, piso: mejor.pb, puntos: [], metros: 0, tipo: 'conector',
-                      conector: c2.tipo, hacia: { edificio: destino.edificio, piso: destino.piso }, n: c2.n,
-                      etiqueta: nombrePlanta(destino.edificio, mejor.pb), metrosEq: c2.costo });
+        tramos.push({
+          edificio: destino.edificio, piso: mejor.pb, puntos: [], metros: 0, tipo: 'conector',
+          conector: c2.tipo, hacia: { edificio: destino.edificio, piso: destino.piso }, n: c2.n,
+          etiqueta: nombrePlanta(destino.edificio, mejor.pb), metrosEq: c2.costo
+        });
         caminar(destino.edificio, destino.piso, c2.salida, destino, { [destino.id]: true });
       } else {
         caminar(destino.edificio, destino.piso, inicioB, destino, { [destino.id]: true });
@@ -501,9 +520,11 @@
       equiv += tramos[t].metros + (tramos[t].metrosEq || 0);
       if (tramos[t].aproximada) aprox = true;
     }
-    return { modo: modo, tramos: tramos, metros: Math.round(metros),
-             minutos: Math.max(1, Math.round(equiv / METROS_POR_MINUTO * 10) / 10),
-             equivalente: equiv, aviso: aviso, aproximada: aprox };
+    return {
+      modo: modo, tramos: tramos, metros: Math.round(metros),
+      minutos: Math.max(1, Math.round(equiv / METROS_POR_MINUTO * 10) / 10),
+      equivalente: equiv, aviso: aviso, aproximada: aprox
+    };
   }
 
   /* =========================================================
@@ -514,14 +535,18 @@
     for (var t = 0; t < ruta.tramos.length; t++) {
       var tr = ruta.tramos[t];
       if (tr.tipo === 'conector') {
-        pasos.push({ tramo: t, icono: tr.conector === 'ascensor' ? '🛗' : '🪜',
+        pasos.push({
+          tramo: t, icono: tr.conector === 'ascensor' ? '🛗' : '🪜',
           texto: T(tr.conector === 'ascensor' ? 'rut.subirAsc' : 'rut.subirEsc',
-                   { lugar: nombrePlanta(tr.hacia.edificio, tr.hacia.piso) }) });
+            { lugar: nombrePlanta(tr.hacia.edificio, tr.hacia.piso) })
+        });
         continue;
       }
       if (tr.tipo === 'puente') {
-        pasos.push({ tramo: t, icono: '🌉', texto: T('rut.puente',
-          { torre: datos.nombreEdificio ? datos.nombreEdificio(tr.hacia.edificio) : 'Torre ' + tr.hacia.edificio }) });
+        pasos.push({
+          tramo: t, icono: '🌉', texto: T('rut.puente',
+            { torre: datos.nombreEdificio ? datos.nombreEdificio(tr.hacia.edificio) : 'Torre ' + tr.hacia.edificio })
+        });
         continue;
       }
       var p = tr.puntos, rumboPrev = null;
@@ -568,8 +593,10 @@
   function trazar(espacio, modoPreferido) {
     if (!espacio) return false;
     var crudo = espacioCrudo(espacio);
-    var dest = { id: crudo.id, nombre: crudo.nombre, edificio: crudo.edificio, piso: crudo.piso,
-                 x: crudo.x + crudo.ancho / 2, y: crudo.y + crudo.alto / 2 };
+    var dest = {
+      id: crudo.id, nombre: crudo.nombre, edificio: crudo.edificio, piso: crudo.piso,
+      x: crudo.x + crudo.ancho / 2, y: crudo.y + crudo.alto / 2
+    };
     var origen = origenUsuario();
 
     /* Primero se cargan los muros reales de las plantas involucradas */
@@ -665,8 +692,10 @@
       if (!visible) continue;
       var dx = (estado.edificioActual === 0 && tr.edificio === 2) ? (datos.OFFSET_TORRE_2 || 0) : 0;
       var pts = dx ? tr.puntos.map(function (p) { return { x: p.x + dx, y: p.y }; }) : tr.puntos;
-      return { espacioId: ra.espacioId, edificio: tr.edificio, piso: tr.piso, puntos: pts,
-               metros: ra.metros, minutos: ra.minutos, tramo: i };
+      return {
+        espacioId: ra.espacioId, edificio: tr.edificio, piso: tr.piso, puntos: pts,
+        metros: ra.metros, minutos: ra.minutos, tramo: i
+      };
     }
     return null;
   }
@@ -700,12 +729,12 @@
     }
     var rr = ra.rutas, html = '';
     html += '<header><strong>' + esc(T('rut.titulo')) + '</strong> · ' + esc(ra.destino.nombre) +
-            '<button class="pr-x" data-accion="cerrar" aria-label="' + esc(T('rut.cerrar')) + '">×</button></header>';
+      '<button class="pr-x" data-accion="cerrar" aria-label="' + esc(T('rut.cerrar')) + '">×</button></header>';
     html += '<div class="pr-modos">';
     ['rapida', 'accesible'].forEach(function (m) {
       html += '<button data-accion="modo" data-modo="' + m + '" class="' + (ra.modo === m ? 'activo' : '') + '">' +
-              '<span>' + esc(T('rut.' + m)) + '</span><b>' + Math.round(rr[m].metros) + ' ' + esc(T('rut.metros')) +
-              ' · ' + rr[m].minutos + ' ' + esc(T('rut.min')) + '</b></button>';
+        '<span>' + esc(T('rut.' + m)) + '</span><b>' + Math.round(rr[m].metros) + ' ' + esc(T('rut.metros')) +
+        ' · ' + rr[m].minutos + ' ' + esc(T('rut.min')) + '</b></button>';
     });
     html += '</div>';
     if (ra.aviso) html += '<p class="pr-aviso">' + esc(T(ra.aviso)) + '</p>';
@@ -715,7 +744,7 @@
       ra.tramos.forEach(function (tr, i) {
         var nom = tr.tipo === 'caminata' ? tr.etiqueta : (tr.tipo === 'puente' ? '🌉' : (tr.conector === 'ascensor' ? '🛗' : '🪜'));
         html += '<button data-accion="tramo" data-i="' + i + '" class="' + (ra.tramoActual === i ? 'activo' : '') + '">' +
-                (i + 1) + '. ' + esc(nom) + '</button>';
+          (i + 1) + '. ' + esc(nom) + '</button>';
       });
       html += '</div>';
     }
