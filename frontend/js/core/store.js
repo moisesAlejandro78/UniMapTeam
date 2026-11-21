@@ -27,9 +27,9 @@
      funcionando con localStorage y los cambios quedan en
      cola para reintentarlos. */
   UniMap.config = {
-    activa: true,
-    apiBase: 'http://localhost:8000/api'
-  };
+  activa: true,
+  apiBase: 'https://unimapteam-production.up.railway.app/api'
+};
 
   /* ── ESTADO DE LA APLICACION ──────────────────────── */
   UniMap.estado = {

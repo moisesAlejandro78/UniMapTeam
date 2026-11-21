@@ -21,7 +21,12 @@ return [
 
     // Se permite cualquier origen local: no se usan cookies de sesion
     // (la autenticacion es por token Bearer), asi que '*' es seguro.
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+    'https://moisesAlejandro78.github.io',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+    'http://localhost:5500',
+    ],
 
     'allowed_origins_patterns' => [],
 
