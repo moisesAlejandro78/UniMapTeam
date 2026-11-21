@@ -1,0 +1,11 @@
+[build]
+builder = "railpack"
+
+[phases.setup]
+nixPkgs = ["php84", "composer"]
+
+[phases.install]
+cmds = ["composer install --no-dev --optimize-autoloader --no-interaction"]
+
+[start]
+cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"
