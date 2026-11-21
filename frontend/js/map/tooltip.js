@@ -91,13 +91,57 @@
    * @param {Number} clientX  coordenada X de viewport
    * @param {Number} clientY  coordenada Y de viewport
    */
+  var FOTOS_POR_ID = {
+    /* Ejemplo cuando sepas el id numérico del backend:
+    '12': 'assets/espacios/lab-redes.jpg',
+    */
+  };
+
+  function fotoPorTipo(tipo) {
+    var t = (tipo || '').toLowerCase();
+    if (t.indexOf('lab') !== -1) return 'assets/espacios/laboratorio-default.jpg';
+    if (t.indexOf('aula') !== -1) return 'assets/espacios/aula-default.jpg';
+    if (t.indexOf('cafe') !== -1) return 'assets/espacios/cafeteria.jpg';
+    if (t.indexOf('oficina') !== -1 || t.indexOf('dept') !== -1) return 'assets/espacios/oficina-default.jpg';
+    return 'assets/espacios/aula-default.jpg';
+  }
+
+  function resolverFotoEspacio(espacio) {
+    if (!espacio) return null;
+    if (espacio.imagen) return espacio.imagen;
+    if (espacio.id && FOTOS_POR_ID[String(espacio.id).replace(/^b/, '')]) {
+      return FOTOS_POR_ID[String(espacio.id).replace(/^b/, '')];
+    }
+    var n = (espacio.nombre || '').toLowerCase();
+    if (n.indexOf('redes') !== -1) return 'assets/espacios/lab-redes.jpg';
+    if (n.indexOf('sistemas') !== -1) return 'assets/espacios/lab-sistemas.jpg';
+    if (n.indexOf('cafeter') !== -1) return 'assets/espacios/cafeteria.jpg';
+    return fotoPorTipo(espacio.tipo);
+  }
   function mostrar(espacio, clientX, clientY) {
     if (!elemento) return;
 
     ultimo = { espacio: espacio, x: clientX, y: clientY };
 
     util.el('tooltip-nombre').textContent = espacio.nombre;
-
+    var wrapFoto = util.el('tooltip-foto-wrap');
+    var imgFoto = util.el('tooltip-foto');
+    if (wrapFoto && imgFoto) {
+      var src = resolverFotoEspacio(espacio);
+      if (src) {
+        imgFoto.alt = espacio.nombre || '';
+        imgFoto.onerror = function () {
+          var fb = fotoPorTipo(espacio.tipo);
+          if (fb && imgFoto.src.indexOf(fb) === -1) imgFoto.src = fb;
+          else wrapFoto.classList.add('hidden');
+        };
+        imgFoto.src = src;
+        wrapFoto.classList.remove('hidden');
+      } else {
+        wrapFoto.classList.add('hidden');
+        imgFoto.removeAttribute('src');
+      }
+    }
     /* Estado de atencion (HU-09) */
     var info = atencion(espacio);
     var elEstado = util.el('tooltip-estado');

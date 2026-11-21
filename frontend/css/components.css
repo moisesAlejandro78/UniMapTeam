@@ -164,18 +164,13 @@
   aspect-ratio: 16 / 9;
   max-height: 140px;
 }
-
-.tooltip-foto-wrap.hidden {
-  display: none;
-}
-
+.tooltip-foto-wrap.hidden { display: none; }
 .tooltip-foto {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
 [data-theme="light"] .tooltip-foto-wrap {
   background: #f1f5f9;
   border-color: #e2e8f0;
