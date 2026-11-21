@@ -99,22 +99,26 @@
 
   function fotoPorTipo(tipo) {
     var t = (tipo || '').toLowerCase();
-    if (t.indexOf('lab') !== -1) return 'assets/espacios/laboratorio-default.jpg';
+    if (t.indexOf('lab') !== -1) return 'assets/espacios/lab-computacion.png'; // fallback con tu archivo real
     if (t.indexOf('aula') !== -1) return 'assets/espacios/aula-default.jpg';
     if (t.indexOf('cafe') !== -1) return 'assets/espacios/cafeteria.jpg';
     if (t.indexOf('oficina') !== -1 || t.indexOf('dept') !== -1) return 'assets/espacios/oficina-default.jpg';
-    return 'assets/espacios/aula-default.jpg';
+    return 'assets/espacios/lab-computacion.png'; // default temporal mientras no haya más fotos
   }
 
   function resolverFotoEspacio(espacio) {
     if (!espacio) return null;
-    if (espacio.imagen) return espacio.imagen;
-    if (espacio.id && FOTOS_POR_ID[String(espacio.id).replace(/^b/, '')]) {
-      return FOTOS_POR_ID[String(espacio.id).replace(/^b/, '')];
-    }
+    if (espacio.imagen) return espacio.imagen; // si el backend envía URL
+
+    var idLimpio = espacio.id != null ? String(espacio.id).replace(/^b/, '') : '';
+    if (idLimpio && FOTOS_POR_ID[idLimpio]) return FOTOS_POR_ID[idLimpio];
+
     var n = (espacio.nombre || '').toLowerCase();
+    // Tu ejemplo real
+    if (n.indexOf('sistemas') !== -1 || n.indexOf('computacion') !== -1 || n.indexOf('computación') !== -1) {
+      return 'assets/espacios/lab-computacion.png';
+    }
     if (n.indexOf('redes') !== -1) return 'assets/espacios/lab-redes.jpg';
-    if (n.indexOf('sistemas') !== -1) return 'assets/espacios/lab-sistemas.jpg';
     if (n.indexOf('cafeter') !== -1) return 'assets/espacios/cafeteria.jpg';
     return fotoPorTipo(espacio.tipo);
   }
