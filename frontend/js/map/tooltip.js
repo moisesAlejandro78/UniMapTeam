@@ -205,6 +205,15 @@
         btnFav.onclick = null;
       }
     }
+        var btnReporte = document.getElementById('tooltip-reportar');
+    if (btnReporte) {
+      btnReporte.onclick = function (e) {
+        e.stopPropagation();
+        if (UniMap.reporte && UniMap.reporte.abrir) {
+          UniMap.reporte.abrir(espacio);  // ← el de mostrar()
+        }
+      };
+    }
 
     conectarAcciones(espacio);
 
@@ -234,7 +243,7 @@
   }
 
   /* Botones HU-10 (ruta) y HU-11 (QR) de la ficha */
-  function conectarAcciones(espacio) {
+    function conectarAcciones(espacio) {
     var btnRuta = util.el('tooltip-ruta');
     if (btnRuta) {
       btnRuta.onclick = function (e) {

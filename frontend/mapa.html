@@ -384,277 +384,316 @@
 
       <!-- Tooltip (compartido por 2D y 3D) -->
       <div id="tooltip-mapa" class="map-tooltip hidden">
-          <div class="tooltip-header">
-            <span id="tooltip-nombre"></span>
-            <span id="tooltip-estado" class="tooltip-status"></span>
-          </div>
+        <div class="tooltip-header">
+          <span id="tooltip-nombre"></span>
+          <span id="tooltip-estado" class="tooltip-status"></span>
+        </div>
 
-          <!-- Foto del espacio -->
-          <div id="tooltip-foto-wrap" class="tooltip-foto-wrap hidden">
-            <img id="tooltip-foto" class="tooltip-foto" alt="" loading="lazy">
-          </div>
+        <!-- Foto del espacio -->
+        <div id="tooltip-foto-wrap" class="tooltip-foto-wrap hidden">
+          <img id="tooltip-foto" class="tooltip-foto" alt="" loading="lazy">
+        </div>
 
-          <div id="tooltip-tipo" class="tooltip-type"></div>
-          <div id="tooltip-info" class="tooltip-info"></div>
-          <div id="tooltip-horario" class="tooltip-schedule"></div>
-          <button id="tooltip-favorito" class="btn-fav btn-sm hidden"></button>
-          <div class="tooltip-acciones">
-            <button id="tooltip-ruta" class="btn-accion" data-i18n-title="tip.ruta">&#128506; <span
-                data-i18n="tip.ruta">Trazar ruta</span></button>
-            <button id="tooltip-qr" class="btn-accion" data-i18n-title="tip.qr">&#128444; <span
-                data-i18n="tip.qr">Codigo QR</span></button>
-          </div>
+        <div id="tooltip-tipo" class="tooltip-type"></div>
+        <div id="tooltip-info" class="tooltip-info"></div>
+        <div id="tooltip-horario" class="tooltip-schedule"></div>
+        <button id="tooltip-favorito" class="btn-fav btn-sm hidden"></button>
+        <div class="tooltip-acciones">
+          <button id="tooltip-ruta" class="btn-accion" data-i18n-title="tip.ruta">&#128506; <span
+              data-i18n="tip.ruta">Trazar ruta</span></button>
+          <button id="tooltip-qr" class="btn-accion" data-i18n-title="tip.qr">&#128444; <span data-i18n="tip.qr">Codigo
+              QR</span></button>
         </div>
       </div>
-
-      <!-- Legend -->
-      <div class="legend">
-        <div class="legend-item"><span class="legend-color disponible"></span> <span
-            data-i18n="ley.activo">Activo</span>
-        </div>
-        <div class="legend-item"><span class="legend-color noDisponible"></span> <span
-            data-i18n="ley.inactivo">Inactivo</span></div>
-        <div class="legend-item leyenda-2d"><span class="legend-color ubicacion"></span> <span
-            data-i18n="ley.usted">Usted
-            aqui</span></div>
-        <!-- HU-08: entrada principal y estacionamientos -->
-        <div class="legend-item leyenda-2d"><span class="legend-icono entrada">E</span> Entrada</div>
-        <div class="legend-item leyenda-2d"><span class="legend-icono estaciona">P</span> Estacionamiento</div>
-      </div>
-
-      <!-- Zoom Controls (solo 2D) -->
-      <div class="zoom-controls" id="controles-zoom">
-        <button id="zoom-acercar" class="btn-zoom" title="Acercar">+</button>
-        <button id="zoom-alejar" class="btn-zoom" title="Alejar">-</button>
-        <button id="zoom-reiniciar" class="btn-zoom" title="Restablecer vista">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Mini Legend / Info -->
-      <div class="map-info" id="info-mapa">
-        <span id="etiqueta-piso-actual">Planta Baja</span>
-        <span id="nivel-zoom">100%</span>
-      </div>
-
-      <!-- HU-11: Modal QR del espacio -->
-      <div id="modal-qr" class="modal hidden">
-        <div class="modal-content modal-qr">
-          <div class="modal-header">
-            <h3 data-i18n="qr.titulo">Codigo QR</h3>
-            <button id="cerrar-qr" class="btn-close" aria-label="Cerrar">&times;</button>
-          </div>
-          <div class="modal-qr-cuerpo">
-            <div id="qr-nombre-espacio"></div>
-            <p class="qr-info" data-i18n="qr.info">Escanea este codigo para abrir la ficha directamente</p>
-            <canvas id="lienzo-qr" width="224" height="224" role="img" aria-label="Codigo QR"></canvas>
-            <input type="text" id="qr-enlace" readonly>
-            <div class="qr-acciones">
-              <button id="copiar-qr" class="btn-primary" data-i18n="qr.copiar">Copiar enlace</button>
-              <button id="descargar-qr" class="btn-secondary" data-i18n="qr.descargar">Descargar PNG</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- HU-11: Modal escanear QR -->
-      <div id="modal-escanear" class="modal hidden">
-        <div class="modal-content modal-escanear">
-          <div class="modal-header">
-            <h3 data-i18n="qr.escanearTitulo">Escanear codigo QR</h3>
-            <button id="cerrar-escanear" class="btn-close" aria-label="Cerrar">&times;</button>
-          </div>
-          <div class="modal-escanear-cuerpo">
-            <video id="video-escanear" playsinline muted class="hidden"></video>
-            <p id="escanear-aviso" data-i18n="qr.camara">Apunta la camara al codigo QR</p>
-            <div class="escanear-alternativa">
-              <input type="text" id="campo-qr-pegado" data-i18n-placeholder="qr.pegarPh"
-                placeholder="Pega aqui el enlace del QR">
-              <button id="abrir-qr-pegado" class="btn-primary" data-i18n="qr.abrir">Abrir</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- HU-20: Modal de perfil (carrera y semestre) -->
-      <div id="modal-perfil" class="modal hidden">
-        <div class="modal-content modal-perfil">
-          <div class="modal-header">
-            <h3 data-i18n="sug.perfil">Mi perfil</h3>
-            <button id="cerrar-perfil" class="btn-close" aria-label="Cerrar">&times;</button>
-          </div>
-          <form id="form-perfil">
-            <div class="form-group">
-              <label for="perfil-carrera" data-i18n="sug.carrera">Carrera</label>
-              <select id="perfil-carrera" required></select>
-            </div>
-            <div class="form-group">
-              <label for="perfil-semestre" data-i18n="sug.semestre">Semestre</label>
-              <select id="perfil-semestre">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-              </select>
-            </div>
-            <div class="qr-acciones">
-              <button type="button" id="cerrar-perfil-btn" class="btn-secondary"
-                data-i18n="adm.cancelar">Cancelar</button>
-              <button type="submit" id="guardar-perfil" class="btn-primary" data-i18n="sug.guardar">Guardar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Notification -->
-      <div id="notificacion" class="notification hidden">
-        <span id="mensaje-notificacion"></span>
-        <button id="cerrar-notificacion" class="btn-close-sm">&times;</button>
-      </div>
-      <!-- ========== BOTTOM NAV MÓVIL (solo ≤768px) ========== -->
-      <nav class="bottom-nav" id="bottom-nav" aria-label="Navegación principal">
-        <button type="button" class="bn-item active" data-bn="explorar" id="bn-explorar">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path
-              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-          </svg>
-          <span>Explorar</span>
-        </button>
-        <button type="button" class="bn-item" data-bn="rutas" id="bn-rutas">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
-          <span>Rutas/AR</span>
-        </button>
-        <button type="button" class="bn-item bn-center" data-bn="agente" id="bn-agente" aria-label="Agente IA">
-          <span class="bn-fab">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
-            </svg>
-          </span>
-          <span>Agente IA</span>
-        </button>
-        <button type="button" class="bn-item" data-bn="servicios" id="bn-servicios">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 21h18M5 21V7l7-4 7 4v14" />
-          </svg>
-          <span>Servicios</span>
-        </button>
-        <button type="button" class="bn-item" data-bn="mas" id="bn-mas">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="5" r="1.5" />
-            <circle cx="12" cy="12" r="1.5" />
-            <circle cx="12" cy="19" r="1.5" />
-          </svg>
-          <span>Más</span>
-        </button>
-      </nav>
-
-      <!-- Sheet "Más" móvil -->
-      <div id="sheet-mas" class="sheet-mas hidden">
-        <div class="sheet-mas-backdrop" id="sheet-mas-backdrop"></div>
-        <div class="sheet-mas-panel">
-          <div class="sheet-mas-handle"></div>
-          <h3>Más opciones</h3>
-          <button type="button" class="sheet-mas-item" data-sheet="horarios">Horarios</button>
-          <button type="button" class="sheet-mas-item" data-sheet="sugerencias">Para ti</button>
-          <button type="button" class="sheet-mas-item" data-sheet="avisos">Avisos</button>
-          <button type="button" class="sheet-mas-item" data-sheet="favoritos">Favoritos</button>
-          <button type="button" class="sheet-mas-item" data-sheet="tema">Cambiar tema</button>
-          <button type="button" class="sheet-mas-item" data-sheet="idioma">Idioma</button>
-          <button type="button" class="sheet-mas-item sheet-admin" data-sheet="editar">Editar posiciones</button>
-          <a class="sheet-mas-item sheet-admin" href="admin.html" data-sheet="admin">Administración</a>
-          <button type="button" class="sheet-mas-item sheet-danger" id="sheet-salir">Cerrar sesión</button>
-        </div>
-      </div>
-
     </div>
 
-    <!-- ===== vendor: Three.js (local, sin conexion) ===== -->
-    <script src="vendor/three/three.min.js"></script>
-    <script src="vendor/three/fflate.min.js"></script>
-    <script src="vendor/three/NURBSUtils.js"></script>
-    <script src="vendor/three/NURBSCurve.js"></script>
-    <script src="vendor/three/GLTFLoader.js"></script>
-    <script src="vendor/three/FBXLoader.js"></script>
-    <script src="vendor/three/OrbitControls.js"></script>
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><span class="legend-color disponible"></span> <span data-i18n="ley.activo">Activo</span>
+      </div>
+      <div class="legend-item"><span class="legend-color noDisponible"></span> <span
+          data-i18n="ley.inactivo">Inactivo</span></div>
+      <div class="legend-item leyenda-2d"><span class="legend-color ubicacion"></span> <span data-i18n="ley.usted">Usted
+          aqui</span></div>
+      <!-- HU-08: entrada principal y estacionamientos -->
+      <div class="legend-item leyenda-2d"><span class="legend-icono entrada">E</span> Entrada</div>
+      <div class="legend-item leyenda-2d"><span class="legend-icono estaciona">P</span> Estacionamiento</div>
+    </div>
 
-    <!-- ===== nucleo (v=6 modo oscuro; v=7-8 sincronizacion con backend) ===== -->
-    <script src="js/core/store.js?v=10"></script>
-    <script src="js/core/api.js?v=9"></script>
-    <script src="js/core/i18n.js?v=18"></script>
-    <script src="js/core/estadisticas.js?v=4"></script>
-    <script src="js/core/avisos.js?v=4"></script>
+    <!-- Zoom Controls (solo 2D) -->
+    <div class="zoom-controls" id="controles-zoom">
+      <button id="zoom-acercar" class="btn-zoom" title="Acercar">+</button>
+      <button id="zoom-alejar" class="btn-zoom" title="Alejar">-</button>
+      <button id="zoom-reiniciar" class="btn-zoom" title="Restablecer vista">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+        </svg>
+      </button>
+    </div>
 
-    <!-- ===== datos ===== -->
-    <script src="js/data/categorias.js?v=4"></script>
-    <script src="js/data/edificios.js?v=8"></script>
-    <script src="js/data/docentes.js?v=4"></script>
-    <script src="js/data/espacios.js?v=9"></script>
-    <script src="js/modelos.js?v=27"></script>
-    <script src="js/core/personalizacion.js?v=8"></script>
+    <!-- Mini Legend / Info -->
+    <div class="map-info" id="info-mapa">
+      <span id="etiqueta-piso-actual">Planta Baja</span>
+      <span id="nivel-zoom">100%</span>
+    </div>
 
-    <!-- ===== sesion ===== -->
-    <script src="js/auth/auth.js?v=7"></script>
+    <!-- HU-11: Modal QR del espacio -->
+    <div id="modal-qr" class="modal hidden">
+      <div class="modal-content modal-qr">
+        <div class="modal-header">
+          <h3 data-i18n="qr.titulo">Codigo QR</h3>
+          <button id="cerrar-qr" class="btn-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-qr-cuerpo">
+          <div id="qr-nombre-espacio"></div>
+          <p class="qr-info" data-i18n="qr.info">Escanea este codigo para abrir la ficha directamente</p>
+          <canvas id="lienzo-qr" width="224" height="224" role="img" aria-label="Codigo QR"></canvas>
+          <input type="text" id="qr-enlace" readonly>
+          <div class="qr-acciones">
+            <button id="copiar-qr" class="btn-primary" data-i18n="qr.copiar">Copiar enlace</button>
+            <button id="descargar-qr" class="btn-secondary" data-i18n="qr.descargar">Descargar PNG</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- ===== mapa 2D ===== -->
-    <script src="js/map/tooltip.js?v=4"></script>
-    <script src="js/map/map2d.js?v=32"></script>
-    <script src="js/map/filtros.js?v=7"></script>
-    <script src="js/map/busqueda.js?v=4"></script>
-    <script src="js/map/horarios.js?v=4"></script>
-    <script src="js/map/favoritos.js?v=3"></script>
-    <script src="js/map/ruta.js?v=15"></script>
-    <script src="js/map/qr.js?v=3"></script>
-    <script src="js/map/servicios.js?v=4"></script>
-    <script src="js/map/sugerencias.js?v=3"></script>
+    <!-- HU-11: Modal escanear QR -->
+    <div id="modal-escanear" class="modal hidden">
+      <div class="modal-content modal-escanear">
+        <div class="modal-header">
+          <h3 data-i18n="qr.escanearTitulo">Escanear codigo QR</h3>
+          <button id="cerrar-escanear" class="btn-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-escanear-cuerpo">
+          <video id="video-escanear" playsinline muted class="hidden"></video>
+          <p id="escanear-aviso" data-i18n="qr.camara">Apunta la camara al codigo QR</p>
+          <div class="escanear-alternativa">
+            <input type="text" id="campo-qr-pegado" data-i18n-placeholder="qr.pegarPh"
+              placeholder="Pega aqui el enlace del QR">
+            <button id="abrir-qr-pegado" class="btn-primary" data-i18n="qr.abrir">Abrir</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- ===== visor 3D ===== -->
-    <script src="js/view3d/viewer3d.js?v=17"></script>
+    <div id="modal-reporte" class="modal-reporte hidden" role="dialog" aria-labelledby="modal-reporte-titulo">
+      <div class="modal-reporte-backdrop" data-cerrar-reporte></div>
+      <div class="modal-reporte-panel">
+        <div class="modal-reporte-header">
+          <h3 id="modal-reporte-titulo">Reportar problema o sugerencia</h3>
+          <button type="button" class="modal-reporte-cerrar" data-cerrar-reporte aria-label="Cerrar">×</button>
+        </div>
+        <p class="modal-reporte-espacio" id="reporte-nombre-espacio">—</p>
+        <form id="form-reporte">
+          <input type="hidden" id="reporte-id-espacio" name="idEspacio" value="">
+          <label class="reporte-label">
+            Tipo
+            <select id="reporte-tipo" name="tipo" required>
+              <option value="error_datos">Error en los datos</option>
+              <option value="error_ubicacion">Ubicación incorrecta</option>
+              <option value="sugerencia">Sugerencia de mejora</option>
+              <option value="otro">Otro</option>
+            </select>
+          </label>
+          <label class="reporte-label">
+            Mensaje
+            <textarea id="reporte-mensaje" name="mensaje" rows="4" required minlength="5"
+              placeholder="Describe el error o la sugerencia..."></textarea>
+          </label>
+          <label class="reporte-label">
+            Correo (opcional)
+            <input type="email" id="reporte-correo" name="correoContacto" placeholder="para responderte">
+          </label>
+          <p id="reporte-estado" class="reporte-estado hidden"></p>
+          <div class="modal-reporte-acciones">
+            <button type="button" class="btn-secundario" data-cerrar-reporte>Cancelar</button>
+            <button type="submit" class="btn-primario" id="btn-enviar-reporte">Enviar</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-    <!-- ===== interfaz y arranque ===== -->
-    <script src="js/ar/camara.js?v=1"></script>
-    <script src="js/ar/ar.js?v=2"></script>
-    <script src="js/core/ui.js?v=7"></script>
-    <script src="js/app.js?v=11"></script>
-    <script src="js/chat/asistente.js?v=2"></script>
+    <!-- HU-20: Modal de perfil (carrera y semestre) -->
+    <div id="modal-perfil" class="modal hidden">
+      <div class="modal-content modal-perfil">
+        <div class="modal-header">
+          <h3 data-i18n="sug.perfil">Mi perfil</h3>
+          <button id="cerrar-perfil" class="btn-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <form id="form-perfil">
+          <div class="form-group">
+            <label for="perfil-carrera" data-i18n="sug.carrera">Carrera</label>
+            <select id="perfil-carrera" required></select>
+          </div>
+          <div class="form-group">
+            <label for="perfil-semestre" data-i18n="sug.semestre">Semestre</label>
+            <select id="perfil-semestre">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+          <div class="qr-acciones">
+            <button type="button" id="cerrar-perfil-btn" class="btn-secondary"
+              data-i18n="adm.cancelar">Cancelar</button>
+            <button type="submit" id="guardar-perfil" class="btn-primary" data-i18n="sug.guardar">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-    <script>
-      (function () {
-        var btnEditar = document.getElementById('boton-editar-posiciones');
-        var btnGuardar = document.getElementById('boton-guardar-posiciones');
-        if (!btnEditar || !btnGuardar) return;
+    <!-- Notification -->
+    <div id="notificacion" class="notification hidden">
+      <span id="mensaje-notificacion"></span>
+      <button id="cerrar-notificacion" class="btn-close-sm">&times;</button>
+    </div>
+    <!-- ========== BOTTOM NAV MÓVIL (solo ≤768px) ========== -->
+    <nav class="bottom-nav" id="bottom-nav" aria-label="Navegación principal">
+      <button type="button" class="bn-item active" data-bn="explorar" id="bn-explorar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+        </svg>
+        <span>Explorar</span>
+      </button>
+      <button type="button" class="bn-item" data-bn="rutas" id="bn-rutas">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+        <span>Rutas/AR</span>
+      </button>
+      <button type="button" class="bn-item bn-center" data-bn="agente" id="bn-agente" aria-label="Agente IA">
+        <span class="bn-fab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+          </svg>
+        </span>
+        <span>Agente IA</span>
+      </button>
+      <button type="button" class="bn-item" data-bn="servicios" id="bn-servicios">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 21h18M5 21V7l7-4 7 4v14" />
+        </svg>
+        <span>Servicios</span>
+      </button>
+      <button type="button" class="bn-item" data-bn="mas" id="bn-mas">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="5" r="1.5" />
+          <circle cx="12" cy="12" r="1.5" />
+          <circle cx="12" cy="19" r="1.5" />
+        </svg>
+        <span>Más</span>
+      </button>
+    </nav>
 
-        var sesion = UniMap.auth ? UniMap.auth.sesionGuardada() : null;
-        if (!sesion || sesion.rol !== 'admin') return;
+    <!-- Sheet "Más" móvil -->
+    <div id="sheet-mas" class="sheet-mas hidden">
+      <div class="sheet-mas-backdrop" id="sheet-mas-backdrop"></div>
+      <div class="sheet-mas-panel">
+        <div class="sheet-mas-handle"></div>
+        <h3>Más opciones</h3>
+        <button type="button" class="sheet-mas-item" data-sheet="horarios">Horarios</button>
+        <button type="button" class="sheet-mas-item" data-sheet="sugerencias">Para ti</button>
+        <button type="button" class="sheet-mas-item" data-sheet="avisos">Avisos</button>
+        <button type="button" class="sheet-mas-item" data-sheet="favoritos">Favoritos</button>
+        <button type="button" id="tooltip-reportar" class="btn-reportar">
+          Reportar / sugerir
+        </button>
+        <button type="button" class="sheet-mas-item" data-sheet="tema">Cambiar tema</button>
+        <button type="button" class="sheet-mas-item" data-sheet="idioma">Idioma</button>
+        <button type="button" class="sheet-mas-item sheet-admin" data-sheet="editar">Editar posiciones</button>
+        <a class="sheet-mas-item sheet-admin" href="admin.html" data-sheet="admin">Administración</a>
+        <button type="button" class="sheet-mas-item sheet-danger" id="sheet-salir">Cerrar sesión</button>
+      </div>
+    </div>
 
-        /* Quitar solo la clase hidden de admin; siguen en hidden-bar */
-        btnEditar.classList.remove('hidden');
-        btnGuardar.classList.add('hidden');
+  </div>
 
-        btnEditar.addEventListener('click', function () {
-          var activo = btnEditar.classList.contains('activo');
-          if (activo) {
-            if (UniMap.mapa2D) UniMap.mapa2D.desactivarEdicionPosiciones();
-          } else {
-            if (UniMap.mapa2D) UniMap.mapa2D.activarEdicionPosiciones();
-          }
-        });
+  <!-- ===== vendor: Three.js (local, sin conexion) ===== -->
+  <script src="vendor/three/three.min.js"></script>
+  <script src="vendor/three/fflate.min.js"></script>
+  <script src="vendor/three/NURBSUtils.js"></script>
+  <script src="vendor/three/NURBSCurve.js"></script>
+  <script src="vendor/three/GLTFLoader.js"></script>
+  <script src="vendor/three/FBXLoader.js"></script>
+  <script src="vendor/three/OrbitControls.js"></script>
 
-        btnGuardar.addEventListener('click', function () {
-          if (UniMap.mapa2D) UniMap.mapa2D.guardarPosiciones();
-        });
-      })();
-    </script>
+  <!-- ===== nucleo (v=6 modo oscuro; v=7-8 sincronizacion con backend) ===== -->
+  <script src="js/core/store.js?v=10"></script>
+  <script src="js/core/api.js?v=9"></script>
+  <script src="js/core/i18n.js?v=18"></script>
+  <script src="js/core/estadisticas.js?v=4"></script>
+  <script src="js/core/avisos.js?v=4"></script>
+
+  <!-- ===== datos ===== -->
+  <script src="js/data/categorias.js?v=4"></script>
+  <script src="js/data/edificios.js?v=8"></script>
+  <script src="js/data/docentes.js?v=4"></script>
+  <script src="js/data/espacios.js?v=9"></script>
+  <script src="js/modelos.js?v=27"></script>
+  <script src="js/core/personalizacion.js?v=8"></script>
+
+  <!-- ===== sesion ===== -->
+  <script src="js/auth/auth.js?v=7"></script>
+
+  <!-- ===== mapa 2D ===== -->
+  <script src="js/map/tooltip.js?v=4"></script>
+  <script src="js/map/reporte.js"></script>
+  <script src="js/map/map2d.js?v=32"></script>
+  <script src="js/map/filtros.js?v=7"></script>
+  <script src="js/map/busqueda.js?v=4"></script>
+  <script src="js/map/horarios.js?v=4"></script>
+  <script src="js/map/favoritos.js?v=3"></script>
+  <script src="js/map/ruta.js?v=15"></script>
+  <script src="js/map/qr.js?v=3"></script>
+  <script src="js/map/servicios.js?v=4"></script>
+  <script src="js/map/sugerencias.js?v=3"></script>
+
+  <!-- ===== visor 3D ===== -->
+  <script src="js/view3d/viewer3d.js?v=17"></script>
+
+  <!-- ===== interfaz y arranque ===== -->
+  <script src="js/ar/camara.js?v=1"></script>
+  <script src="js/ar/ar.js?v=2"></script>
+  <script src="js/core/ui.js?v=7"></script>
+  <script src="js/app.js?v=11"></script>
+  <script src="js/chat/asistente.js?v=2"></script>
+
+  <script>
+    (function () {
+      var btnEditar = document.getElementById('boton-editar-posiciones');
+      var btnGuardar = document.getElementById('boton-guardar-posiciones');
+      if (!btnEditar || !btnGuardar) return;
+
+      var sesion = UniMap.auth ? UniMap.auth.sesionGuardada() : null;
+      if (!sesion || sesion.rol !== 'admin') return;
+
+      /* Quitar solo la clase hidden de admin; siguen en hidden-bar */
+      btnEditar.classList.remove('hidden');
+      btnGuardar.classList.add('hidden');
+
+      btnEditar.addEventListener('click', function () {
+        var activo = btnEditar.classList.contains('activo');
+        if (activo) {
+          if (UniMap.mapa2D) UniMap.mapa2D.desactivarEdicionPosiciones();
+        } else {
+          if (UniMap.mapa2D) UniMap.mapa2D.activarEdicionPosiciones();
+        }
+      });
+
+      btnGuardar.addEventListener('click', function () {
+        if (UniMap.mapa2D) UniMap.mapa2D.guardarPosiciones();
+      });
+    })();
+  </script>
 </body>
 
 </html>

@@ -175,3 +175,132 @@
   background: #f1f5f9;
   border-color: #e2e8f0;
 }
+/* Botón reportar en la ficha */
+.btn-reportar {
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(245, 158, 11, 0.55);
+  background: transparent;
+  color: #f59e0b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-reportar:hover {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: #f59e0b;
+}
+
+/* Modal reporte */
+.modal-reporte {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-reporte.hidden { display: none !important; }
+
+.modal-reporte-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.modal-reporte-panel {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: min(90vh, 560px);
+  overflow-y: auto;
+  background: var(--bg-surface, #0f172a);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.modal-reporte-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.modal-reporte-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.modal-reporte-cerrar {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.modal-reporte-espacio {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.reporte-label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+.reporte-label select,
+.reporte-label textarea,
+.reporte-label input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(2, 6, 23, 0.45);
+  color: inherit;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.reporte-estado {
+  font-size: 13px;
+  margin: 0 0 10px;
+  color: #fbbf24;
+}
+.modal-reporte-acciones {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.modal-reporte-acciones .btn-secundario,
+.modal-reporte-acciones .btn-primario {
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.modal-reporte-acciones .btn-secundario {
+  background: transparent;
+  border-color: rgba(148, 163, 184, 0.3);
+  color: inherit;
+}
+.modal-reporte-acciones .btn-primario {
+  background: linear-gradient(135deg, #940036, #b1033b);
+  color: #fff;
+  border: 0;
+}
