@@ -18,6 +18,7 @@ class EspacioResource extends JsonResource
             'nombreEspacio' => $this->nombreEspacio,
             'descripcionEspacio' => $this->descripcionEspacio,
             'contactoEspacio' => $this->contactoEspacio,
+            'urlImagen' => $this->urlImagen,
             'latitud' => $this->latitud !== null ? (float) $this->latitud : null,
             'longitud' => $this->longitud !== null ? (float) $this->longitud : null,
             'estadoAtencion' => $this->estadoAtencion,

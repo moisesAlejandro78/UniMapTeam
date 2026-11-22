@@ -20,6 +20,7 @@ class EspacioMapaResource extends JsonResource
             'estadoAtencion' => $this->estadoAtencion,
             'estaActivo' => $this->estaActivo,
             'contactoEspacio' => $this->contactoEspacio,
+            'urlImagen' => $this->urlImagen,
             // Horarios compactos ("HH:MM-HH:MM") para la web del mapa
             'horarios' => $this->whenLoaded('horariosEspacio', fn () => $this->horariosEspacio
                 ->map(fn ($horario) => [

@@ -118,8 +118,8 @@
     if (n.indexOf('sistemas') !== -1 || n.indexOf('computacion') !== -1 || n.indexOf('computación') !== -1) {
       return 'assets/espacios/lab-computacion.png';
     }
-    if (n.indexOf('redes') !== -1) return 'assets/espacios/lab-redes.jpg';
-    if (n.indexOf('cafeter') !== -1) return 'assets/espacios/cafeteria.jpg';
+    if (n.indexOf('redes') !== -1) return 'assets/espacios/lab-computacion.png';
+    if (n.indexOf('cafeter') !== -1) return 'assets/espacios/lab-computacion.png';
     return fotoPorTipo(espacio.tipo);
   }
   function mostrar(espacio, clientX, clientY) {

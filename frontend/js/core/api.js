@@ -247,13 +247,12 @@
       tipo = TIPO_INVERSO[nombreTipo] || nombreTipo;
     }
 
-    return {
+      return {
       id: 'b' + esp.idEspacio,
       idBackend: esp.idEspacio,
       nombre: esp.nombreEspacio,
       tipo: tipo,
-      categoria: null,     /* los ids de categoria del backend no coinciden
-                              con los numeritos del frontend: se ignora */
+      categoria: null,
       subtipo: (esp.laboratorio && esp.laboratorio.tipoLaboratorio)
         ? normalizar(esp.laboratorio.tipoLaboratorio.nombreTipoLaboratorio) : null,
       edificio: numeroTorre,
@@ -263,7 +262,8 @@
       estado: esp.estaActivo === false ? 'inactivo' : 'activo',
       docente: null,
       horarioAtencion: horarioTexto(esp.horarios),
-      telefono: esp.contactoEspacio || ''
+      telefono: esp.contactoEspacio || '',
+      imagen: esp.urlImagen || null   // ← AQUÍ
     };
   }
 
