@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\RolController;
 use App\Http\Controllers\Api\SugerenciaController;
 use App\Http\Controllers\Api\ZonaController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ReporteEspacioController;
 
 /*
 |----------------------------------------------------------------------
@@ -87,7 +88,7 @@ Route::get('/rutas', [RutaController::class, 'calcular']);
 
 // Registro de eventos de consulta (público, usuario opcional) — HU-14 (no cacheable: POST)
 Route::post('/eventos-consulta', [EventoConsultaController::class, 'store']);
-
+Route::post('/reportes-espacio', [ReporteEspacioController::class, 'store']);
 /*
 |----------------------------------------------------------------------
 | Rutas que requieren autenticación (token Sanctum)
