@@ -215,26 +215,46 @@
       };
     }
 
-    conectarAcciones(espacio);
+        conectarAcciones(espacio);
 
     /* Posicion relativa al contenedor del mapa */
     var contenedor = util.el('contenedor-mapa');
-    var rect = contenedor ? contenedor.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+    var rect = contenedor
+      ? contenedor.getBoundingClientRect()
+      : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
 
-    var tipW = 250;
-    var tipH = elemento.offsetHeight || 200;
+    /* Medir tamaño real (fuera de pantalla un instante) */
+    elemento.classList.remove('hidden');
+    elemento.style.left = '-9999px';
+    elemento.style.top = '0';
+    elemento.style.maxHeight = '';
+    elemento.style.overflowY = '';
 
-    var tx = clientX - rect.left + 15;
-    var ty = clientY - rect.top - 10;
+    var tipW = Math.max(elemento.offsetWidth || 260, 230);
+    var tipH = Math.max(elemento.offsetHeight || 200, 120);
 
-    if (tx + tipW > rect.width) tx = clientX - rect.left - tipW - 15;
-    if (tx < 4) tx = 4;
-    if (ty + tipH > rect.height) ty = rect.height - tipH - 8;
-    if (ty < 4) ty = 4;
+    var tx = clientX - rect.left + 14;
+    var ty = clientY - rect.top - 12;
+
+    /* Horizontal */
+    if (tx + tipW > rect.width - 8) tx = clientX - rect.left - tipW - 14;
+    if (tx < 8) tx = 8;
+
+    /* Vertical: si no cabe abajo, poner arriba del pin */
+    if (ty + tipH > rect.height - 8) {
+      ty = clientY - rect.top - tipH - 12;
+    }
+    if (ty < 8) ty = 8;
+
+    /* Si aún no cabe, pegar arriba y scroll interno */
+    if (ty + tipH > rect.height - 8) {
+      ty = 8;
+      elemento.style.maxHeight = (rect.height - 16) + 'px';
+      elemento.style.overflowY = 'auto';
+    }
 
     elemento.style.left = tx + 'px';
     elemento.style.top = ty + 'px';
-    elemento.classList.remove('hidden');
   }
 
   function minutosAhora() {

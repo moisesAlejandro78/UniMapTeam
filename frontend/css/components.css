@@ -52,6 +52,10 @@
   border: 1px solid var(--gray-100);
   animation: tooltipIn .15s ease;
 }
+.map-tooltip {
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+}
 
 .tooltip-header {
   display: flex;
@@ -303,4 +307,28 @@
   background: linear-gradient(135deg, #940036, #b1033b);
   color: #fff;
   border: 0;
+}
+/* Select del modal de reporte — legible en tema oscuro */
+.modal-reporte-panel select,
+.modal-reporte-panel select option {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+.modal-reporte-panel select {
+  color-scheme: dark;
+  appearance: auto;
+  -webkit-appearance: menulist;
+}
+
+[data-theme="light"] .modal-reporte-panel select,
+[data-theme="light"] .modal-reporte-panel select option {
+  background-color: #ffffff;
+  color: #0f172a;
+  color-scheme: light;
+}
+
+/* Evitar texto recortado en el select abierto */
+.modal-reporte-panel select option {
+  padding: 8px 10px;
 }
