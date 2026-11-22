@@ -170,3 +170,5 @@ Route::middleware(['auth:sanctum', 'rol:administrador,personalAdministrativo', '
         // HU-14 — estadísticas de uso
         Route::get('/estadisticas/espacios-mas-consultados', [EstadisticaController::class, 'espaciosMasConsultados']);
     });
+
+// deploy reportes 2026-11-22T16:23:08.3068223-04:00
