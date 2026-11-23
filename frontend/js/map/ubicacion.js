@@ -37,60 +37,60 @@
         return { x: Math.round(x), y: Math.round(y) };
     }
 
-        var METROS_POR_UNIDAD = 0.12; /* igual que ruta.js */
+    var METROS_POR_UNIDAD = 0.12; /* igual que ruta.js */
     var ultimoRecalcTs = 0;
 
     function distanciaMetrosApprox(a, b) {
-      if (!a || !b) return 9999;
-      var dx = a.x - b.x;
-      var dy = a.y - b.y;
-      return Math.sqrt(dx * dx + dy * dy) * METROS_POR_UNIDAD;
+        if (!a || !b) return 9999;
+        var dx = a.x - b.x;
+        var dy = a.y - b.y;
+        return Math.sqrt(dx * dx + dy * dy) * METROS_POR_UNIDAD;
     }
 
     function intentarRecalcularRuta(plano) {
-      var ra = estado.rutaActiva;
-      if (!ra || !UniMap.ruta || !UniMap.ruta.trazar) return;
+        var ra = estado.rutaActiva;
+        if (!ra || !UniMap.ruta || !UniMap.ruta.trazar) return;
 
-      var ahora = Date.now();
-      if (ahora - ultimoRecalcTs < 1200) return;
+        var ahora = Date.now();
+        if (ahora - ultimoRecalcTs < 1200) return;
 
-      var mov = distanciaMetrosApprox(ultimaPos, plano);
-      if (ultimaPos && mov < METROS_RECALCULAR) return;
+        var mov = distanciaMetrosApprox(ultimaPos, plano);
+        if (ultimaPos && mov < METROS_RECALCULAR) return;
 
-      var dest = ra.destino || null;
-      if (!dest && ra.espacioId) {
-        var todos = estado.todosLosEspacios || [];
-        for (var i = 0; i < todos.length; i++) {
-          if (todos[i].id === ra.espacioId) {
-            dest = todos[i];
-            break;
-          }
+        var dest = ra.destino || null;
+        if (!dest && ra.espacioId) {
+            var todos = estado.todosLosEspacios || [];
+            for (var i = 0; i < todos.length; i++) {
+                if (todos[i].id === ra.espacioId) {
+                    dest = todos[i];
+                    break;
+                }
+            }
         }
-      }
-      if (!dest && estado.espacioSeleccionado) dest = estado.espacioSeleccionado;
-      if (!dest) return;
+        if (!dest && estado.espacioSeleccionado) dest = estado.espacioSeleccionado;
+        if (!dest) return;
 
-      ultimoRecalcTs = ahora;
-      UniMap.ruta.trazar(dest, ra.modo);
+        ultimoRecalcTs = ahora;
+        UniMap.ruta.trazar(dest, ra.modo);
     }
 
     function aplicarPosicion(lat, lng, accuracy) {
-      var plano = geoAPlano(lat, lng);
-      estado.ubicacionUsuario = {
-        x: plano.x,
-        y: plano.y,
-        lat: lat,
-        lng: lng,
-        accuracy: accuracy || null,
-        ts: Date.now()
-      };
-      estado.ubicacionEdificio = estado.edificioActual === 0 ? 1 : estado.edificioActual;
-      estado.ubicacionPiso = estado.pisoActual;
+        var plano = geoAPlano(lat, lng);
+        estado.ubicacionUsuario = {
+            x: plano.x,
+            y: plano.y,
+            lat: lat,
+            lng: lng,
+            accuracy: accuracy || null,
+            ts: Date.now()
+        };
+        estado.ubicacionEdificio = estado.edificioActual === 0 ? 1 : estado.edificioActual;
+        estado.ubicacionPiso = estado.pisoActual;
 
-      if (UniMap.mapa2D && UniMap.mapa2D.dibujar) UniMap.mapa2D.dibujar();
+        if (UniMap.mapa2D && UniMap.mapa2D.dibujar) UniMap.mapa2D.dibujar();
 
-      intentarRecalcularRuta(plano);
-      ultimaPos = plano;
+        intentarRecalcularRuta(plano);
+        ultimaPos = plano;
     }
 
     function alError(err) {
@@ -195,11 +195,22 @@
     }
 
     function iniciar() {
-        /* Punto inicial si aún no hay */
         if (!estado.ubicacionUsuario) {
-            estado.ubicacionUsuario = { x: 555, y: 280 };
+            estado.ubicacionUsuario = { x: 400, y: 280 };
         }
         activarTecladoDemo();
+
+        function activarGPS() {
+            obtenerUnaVez();
+            iniciarSeguimiento();
+        }
+
+        var fab = util.el('boton-ubicacion-fab');
+        if (fab) fab.addEventListener('click', activarGPS);
+
+        /* El botón oculto sigue sirviendo si otros menús lo “cliquean” */
+        var oculto = util.el('boton-ubicacion');
+        if (oculto) oculto.addEventListener('click', activarGPS);
     }
 
     UniMap.ubicacion = {
