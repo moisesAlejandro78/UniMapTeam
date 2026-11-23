@@ -97,25 +97,6 @@
         UniMap.ruta.trazar(dest, ra.modo);
     }
 
-    function aplicarPosicion(lat, lng, accuracy) {
-        var plano = geoAPlano(lat, lng);
-        estado.ubicacionUsuario = {
-            x: plano.x,
-            y: plano.y,
-            lat: lat,
-            lng: lng,
-            accuracy: accuracy || null,
-            ts: Date.now()
-        };
-        estado.ubicacionEdificio = estado.edificioActual === 0 ? 1 : estado.edificioActual;
-        estado.ubicacionPiso = estado.pisoActual;
-
-        if (UniMap.mapa2D && UniMap.mapa2D.dibujar) UniMap.mapa2D.dibujar();
-
-        intentarRecalcularRuta(plano);
-        ultimaPos = plano;
-    }
-
     var ultimoErrorTs = 0;
 
     function alError(err) {
