@@ -745,29 +745,38 @@ body.vista-3d .selector-torre {
   color: #fff !important;
   box-shadow: 0 8px 20px rgba(var(--uv-core-rgb), 0.45) !important;
 }
-/* Botón flotante: activar GPS / Mi ubicación */
-/* Mi ubicación: mismo bloque que los + / − */
+/* Mi ubicación — pin institucional */
 .btn-ubicacion-fab {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--uv-core, #940036), var(--uv-vibrant, #b1033b));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(145deg, #940036 0%, #b1033b 100%);
   color: #fff;
-  font-size: 18px;
   cursor: pointer;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 6px 18px rgba(148, 0, 54, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  position: static; /* importante: NO absolute aquí */
+  position: static;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-ubicacion-fab svg {
+  display: block;
 }
 
 .btn-ubicacion-fab:hover {
-  transform: scale(1.05);
+  transform: scale(1.06);
+  box-shadow: 0 8px 22px rgba(148, 0, 54, 0.55);
 }
 
 .btn-ubicacion-fab:active {
   transform: scale(0.96);
+}
+
+/* Estado activo mientras hay seguimiento */
+.btn-ubicacion-fab.activo {
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.45), 0 8px 22px rgba(148, 0, 54, 0.5);
 }

@@ -27,13 +27,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- CSS: hojas divididas por capitulo (v=4 modo oscuro) -->
   <link rel="stylesheet" href="css/base.css?v=13">
-  <link rel="stylesheet" href="css/map.css?v=12">
+  <link rel="stylesheet" href="css/map.css?v=13">
   <link rel="stylesheet" href="css/panels.css?v=5">
   <link rel="stylesheet" href="css/components.css?v=8">
   <link rel="stylesheet" href="css/view3d.css?v=6">
   <link rel="stylesheet" href="css/hus.css?v=5">
   <link rel="stylesheet" href="css/ar.css?v=3">
-  <link rel="stylesheet" href="css/responsive.css?v=23">
+  <link rel="stylesheet" href="css/responsive.css?v=24">
   <link rel="stylesheet" href="css/chat.css?v=8">
 </head>
 
@@ -435,7 +435,10 @@
     </button>
     <button id="boton-ubicacion-fab" type="button" class="btn-ubicacion-fab" title="Mi ubicación"
       aria-label="Activar mi ubicación">
-      📍
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z" fill="currentColor" opacity="0.95" />
+        <circle cx="12" cy="10" r="2.5" fill="#0f172a" />
+      </svg>
     </button>
   </div>
 
@@ -656,7 +659,7 @@
   <script src="js/map/horarios.js?v=4"></script>
   <script src="js/map/favoritos.js?v=3"></script>
   <script src="js/map/ruta.js?v=16"></script>
-  <script src="js/map/ubicacion.js?v=2"></script>
+  <script src="js/map/ubicacion.js?v=3"></script>
   <script src="js/map/qr.js?v=3"></script>
   <script src="js/map/servicios.js?v=4"></script>
   <script src="js/map/sugerencias.js?v=3"></script>
@@ -699,4 +702,5 @@
     })();
   </script>
 </body>
+
 </html>

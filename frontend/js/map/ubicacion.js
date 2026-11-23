@@ -124,6 +124,10 @@
                 timeout: 15000
             }
         );
+
+        var fab = util.el('boton-ubicacion-fab');
+        if (fab) fab.classList.add('activo');
+
         if (util.notificar) util.notificar('Seguimiento de ubicación activado', 2500);
         return true;
     }
@@ -133,6 +137,41 @@
             navigator.geolocation.clearWatch(watchId);
             watchId = null;
         }
+        var fab = util.el('boton-ubicacion-fab');
+        if (fab) fab.classList.remove('activo');
+    }
+    function dentroDelCampus(lat, lng) {
+        var m = 0.002; /* ~200 m de margen */
+        return lng >= GEO.minLng - m && lng <= GEO.maxLng + m &&
+            lat >= GEO.minLat - m && lat <= GEO.maxLat + m;
+    }
+
+    function aplicarPosicion(lat, lng, accuracy) {
+        if (!isFinite(lat) || !isFinite(lng)) return;
+
+        if (!dentroDelCampus(lat, lng)) {
+            if (util.notificar) {
+                util.notificar('Estás fuera del área del campus (o el GPS es impreciso). Se mantiene la posición actual.', 4000);
+            }
+            console.warn('[ubicacion] fuera de GEO', lat, lng);
+            return; /* NO muevas el pin al borde */
+        }
+
+        var plano = geoAPlano(lat, lng);
+        estado.ubicacionUsuario = {
+            x: plano.x,
+            y: plano.y,
+            lat: lat,
+            lng: lng,
+            accuracy: accuracy || null,
+            ts: Date.now()
+        };
+        estado.ubicacionEdificio = estado.edificioActual === 0 ? 1 : estado.edificioActual;
+        estado.ubicacionPiso = estado.pisoActual;
+
+        if (UniMap.mapa2D && UniMap.mapa2D.dibujar) UniMap.mapa2D.dibujar();
+        intentarRecalcularRuta(plano);
+        ultimaPos = plano;
     }
 
     /** Una sola lectura (botón "ubicarme") */

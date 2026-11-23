@@ -297,6 +297,14 @@ body.modo-invitado .user-menu-admin {
   bottom: 16px !important;
   z-index: 40;
 }
+@media (max-width: 768px) {
+  .btn-ubicacion-fab {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important; /* círculo como en tu captura */
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  }
+}
 
 .map-info {
   right: 72px !important;
