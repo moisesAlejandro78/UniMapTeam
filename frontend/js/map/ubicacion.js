@@ -162,12 +162,26 @@
     function aplicarPosicion(lat, lng, accuracy) {
         if (!isFinite(lat) || !isFinite(lng)) return;
 
+        if (accuracy && accuracy > 80) {
+            if (util.notificar) {
+                util.notificar(
+                    'GPS poco preciso (±' + Math.round(accuracy) + ' m). Busca una ventana o la entrada.',
+                    4000
+                );
+            }
+            console.warn('[ubicacion] accuracy alta', accuracy, lat, lng);
+            return;
+        }
+
         if (!dentroDelCampus(lat, lng)) {
             if (util.notificar) {
-                util.notificar('Estás fuera del área del campus (o el GPS es impreciso). Se mantiene la posición actual.', 4000);
+                util.notificar(
+                    'Estás fuera del área del campus (o el GPS es impreciso). Se mantiene la posición actual.',
+                    4000
+                );
             }
             console.warn('[ubicacion] fuera de GEO', lat, lng);
-            return; /* NO muevas el pin al borde */
+            return;
         }
 
         var plano = geoAPlano(lat, lng);
@@ -185,6 +199,22 @@
         if (UniMap.mapa2D && UniMap.mapa2D.dibujar) UniMap.mapa2D.dibujar();
         intentarRecalcularRuta(plano);
         ultimaPos = plano;
+
+        /* ← esto es lo que faltaba */
+        console.log(
+            '[GPS]',
+            lat.toFixed(6),
+            lng.toFixed(6),
+            'acc=', accuracy,
+            'plano=', plano.x, plano.y
+        );
+        if (util.notificar) {
+            util.notificar(
+                'GPS: ' + lat.toFixed(5) + ', ' + lng.toFixed(5) +
+                (accuracy ? ' (±' + Math.round(accuracy) + ' m)' : ''),
+                5000
+            );
+        }
     }
 
     /** Una sola lectura (botón "ubicarme") */
@@ -196,7 +226,6 @@
         navigator.geolocation.getCurrentPosition(
             function (pos) {
                 aplicarPosicion(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
-                if (util.notificar) util.notificar('Ubicación actualizada', 2000);
             },
             alError,
             { enableHighAccuracy: true, timeout: 25000, maximumAge: 10000 }
