@@ -14,10 +14,12 @@
        Valores de ejemplo para Univalle (La Paz); cámbialos
        midiendo 2 puntos conocidos en el campus. */
     var GEO = {
-        minLng: -68.0920,
-        maxLng: -68.0880,
-        minLat: -16.5450,
-        maxLat: -16.5410,
+        /* Calibración aprox. Univalle (ajustada con GPS real del usuario)
+           Amplía/reduce tras probar en el campus caminando 2–3 puntos conocidos */
+        minLng: -68.1210,
+        maxLng: -68.1175,
+        minLat: -16.5050,
+        maxLat: -16.5015,
         anchoPlano: 800,
         altoPlano: 600
     };
