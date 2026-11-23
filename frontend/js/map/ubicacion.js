@@ -116,12 +116,20 @@
         ultimaPos = plano;
     }
 
+    var ultimoErrorTs = 0;
+
     function alError(err) {
+        var ahora = Date.now();
+        if (ahora - ultimoErrorTs < 8000) return; /* evitar lluvia de avisos */
+        ultimoErrorTs = ahora;
+
         var msg = 'No se pudo obtener la ubicación';
         if (err && err.code === 1) msg = 'Permiso de ubicación denegado';
         if (err && err.code === 2) msg = 'Ubicación no disponible';
-        if (err && err.code === 3) msg = 'Tiempo de espera de GPS agotado';
-        if (util.notificar) util.notificar(msg, 3500);
+        if (err && err.code === 3) {
+            msg = 'GPS lento o débil (típico en interiores). Sal cerca de una ventana o entrada y vuelve a intentar.';
+        }
+        if (util.notificar) util.notificar(msg, 4000);
         console.warn('[ubicacion]', err);
     }
 
@@ -143,8 +151,8 @@
             alError,
             {
                 enableHighAccuracy: true,
-                maximumAge: 2000,
-                timeout: 15000
+                maximumAge: 5000,
+                timeout: 25000
             }
         );
 
@@ -210,7 +218,7 @@
                 if (util.notificar) util.notificar('Ubicación actualizada', 2000);
             },
             alError,
-            { enableHighAccuracy: true, timeout: 12000, maximumAge: 3000 }
+            { enableHighAccuracy: true, timeout: 25000, maximumAge: 10000 }
         );
     }
 
