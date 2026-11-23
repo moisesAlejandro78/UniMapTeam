@@ -761,22 +761,33 @@
   function ra_() { return estado.rutaActiva; }
 
   /* ── GEOLOCALIZACION (HU-10) ────────────────────────── */
-  function solicitarUbicacion() {
-    if (!navigator.geolocation) { util.notificar(T('ubi.noSoportado'), 3500); return; }
+    function solicitarUbicacion() {
+    if (UniMap.ubicacion && UniMap.ubicacion.obtenerUnaVez) {
+      UniMap.ubicacion.obtenerUnaVez();
+      UniMap.ubicacion.iniciarSeguimiento();
+      return;
+    }
+    if (!navigator.geolocation) {
+      util.notificar(T('ubi.noSoportado'), 3500);
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
-      function () {
-        estado.ubicacionUsuario = { x: PUNTO_DEFECTO.x, y: PUNTO_DEFECTO.y };
+      function (pos) {
+        if (UniMap.ubicacion && UniMap.ubicacion.aplicarPosicion) {
+          UniMap.ubicacion.aplicarPosicion(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+        }
         util.notificar(T('ubi.obtenida'), 2500);
-        if (UniMap.mapa2D) UniMap.mapa2D.dibujar();
       },
       function () { util.notificar(T('ubi.denegado'), 3500); },
-      { enableHighAccuracy: false, timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 12000 }
     );
   }
 
   /* ── INTERFAZ ─────────────────────────────────────── */
-  function iniciar() {
-    estado.ubicacionUsuario = { x: PUNTO_DEFECTO.x, y: PUNTO_DEFECTO.y };
+    function iniciar() {
+    if (!estado.ubicacionUsuario) {
+      estado.ubicacionUsuario = { x: PUNTO_DEFECTO.x, y: PUNTO_DEFECTO.y };
+    }
 
     var botonRuta = util.el('boton-ruta');
     if (botonRuta) botonRuta.addEventListener('click', function () {
@@ -788,7 +799,12 @@
     var botonUbicacion = util.el('boton-ubicacion');
     if (botonUbicacion) botonUbicacion.addEventListener('click', solicitarUbicacion);
 
-    document.addEventListener('idioma:cambiado', function () { if (estado.rutaActiva) { aplicarModo(estado.rutaActiva.modo); pintarPanel(); } });
+    document.addEventListener('idioma:cambiado', function () {
+      if (estado.rutaActiva) {
+        aplicarModo(estado.rutaActiva.modo);
+        pintarPanel();
+      }
+    });
   }
 
   UniMap.ruta = {

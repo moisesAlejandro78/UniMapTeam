@@ -134,12 +134,12 @@
 
     /* 6. Modulos nuevos */
     if (UniMap.ruta) UniMap.ruta.iniciar();
+    if (UniMap.ubicacion) UniMap.ubicacion.iniciar();
     if (UniMap.ar) UniMap.ar.iniciar();
     if (UniMap.qr) UniMap.qr.iniciar();
     if (UniMap.servicios) UniMap.servicios.iniciar();
     if (UniMap.sugerencias) UniMap.sugerencias.iniciar();
     if (UniMap.avisos) UniMap.avisos.iniciar();
-
     /* 7. Visor 3D */
     if (UniMap.vista3D) UniMap.vista3D.iniciar();
 
