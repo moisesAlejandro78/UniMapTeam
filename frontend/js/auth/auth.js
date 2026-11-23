@@ -83,11 +83,57 @@
   }
 
   /* ── VALIDACIONES / ERRORES ───────────────────────── */
-  function mostrarError(idCampo, mensaje) {
+  var DOMINIO_CORREO = '@univalle.edu.bo';
+  var PASS_MIN = 8;
+  var PASS_MAX = 64;
+  var NOMBRE_MAX = 60;
+  var CORREO_MAX = 120;
+
+    function mostrarError(idCampo, mensaje) {
     var campo = util.el(idCampo);
     var error = util.el(idCampo + '-error');
     if (campo) campo.classList.add('error');
-    if (error) error.textContent = mensaje;
+    if (error) {
+      error.textContent = mensaje;
+      error.classList.add('error-msg-alerta');
+    }
+  }
+    function asegurarCajaAlerta() {
+    var caja = util.el('auth-alerta');
+    if (caja) return caja;
+    var cont = document.querySelector('.auth-container');
+    if (!cont) return null;
+    caja = document.createElement('div');
+    caja.id = 'auth-alerta';
+    caja.className = 'auth-alerta hidden';
+    caja.setAttribute('role', 'alert');
+    /* Insertar arriba de los formularios */
+    var tabs = cont.querySelector('.auth-tabs');
+    if (tabs && tabs.nextSibling) cont.insertBefore(caja, tabs.nextSibling);
+    else cont.insertBefore(caja, cont.firstChild);
+    return caja;
+  }
+
+  function mostrarAlertaAuth(mensaje) {
+    var caja = asegurarCajaAlerta();
+    if (!caja) return;
+    caja.textContent = mensaje;
+    caja.classList.remove('hidden');
+  }
+
+  function ocultarAlertaAuth() {
+    var caja = util.el('auth-alerta');
+    if (caja) {
+      caja.textContent = '';
+      caja.classList.add('hidden');
+    }
+  }
+
+  function limpiarError(idCampo) {
+    var campo = util.el(idCampo);
+    var error = util.el(idCampo + '-error');
+    if (campo) campo.classList.remove('error');
+    if (error) error.textContent = '';
   }
 
   function limpiarTodosLosErrores() {
@@ -97,7 +143,146 @@
     for (var j = 0; j < campos.length; j++) campos[j].classList.remove('error');
   }
 
-  /* ── EVENTOS (solo si los elementos existen) ──────── */
+  function normalizarCorreo(v) {
+    return String(v || '').trim().toLowerCase();
+  }
+
+  function soloLetrasNombre(v) {
+    return /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]+$/.test(v);
+  }
+
+  function validarNombre(id, etiqueta, obligatorio) {
+    limpiarError(id);
+    var raw = util.el(id);
+    if (!raw) return true;
+    var v = String(raw.value || '').trim().replace(/\s+/g, ' ');
+    raw.value = v;
+
+    if (!v) {
+      if (obligatorio) {
+        mostrarError(id, 'El campo ' + etiqueta + ' es obligatorio.');
+        return false;
+      }
+      return true;
+    }
+    if (v.length < 2) {
+      mostrarError(id, etiqueta + ' debe tener al menos 2 caracteres.');
+      return false;
+    }
+    if (v.length > NOMBRE_MAX) {
+      mostrarError(id, etiqueta + ' no puede superar ' + NOMBRE_MAX + ' caracteres.');
+      return false;
+    }
+    if (!soloLetrasNombre(v)) {
+      mostrarError(id, etiqueta + ' solo puede contener letras y espacios.');
+      return false;
+    }
+    return true;
+  }
+
+  function validarCorreoUnivalle(id) {
+    limpiarError(id);
+    var raw = util.el(id);
+    if (!raw) return false;
+    var v = normalizarCorreo(raw.value);
+    raw.value = v;
+
+    if (!v) {
+      mostrarError(id, 'El correo es obligatorio.');
+      return false;
+    }
+    if (v.length > CORREO_MAX) {
+      mostrarError(id, 'El correo es demasiado largo.');
+      return false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+      mostrarError(id, 'Formato de correo no válido.');
+      return false;
+    }
+    var partes = v.split('@');
+    if (partes.length !== 2 || partes[1] !== 'univalle.edu.bo') {
+      mostrarError(id, 'Solo se permiten correos institucionales @univalle.edu.bo');
+      return false;
+    }
+    if (!partes[0] || partes[0].length < 2) {
+      mostrarError(id, 'La parte local del correo es demasiado corta.');
+      return false;
+    }
+    if (!/^[a-z0-9._+-]+$/.test(partes[0])) {
+      mostrarError(id, 'El correo contiene caracteres no permitidos.');
+      return false;
+    }
+    return true;
+  }
+
+  function validarContrasena(id, esRegistro) {
+    limpiarError(id);
+    var raw = util.el(id);
+    if (!raw) return false;
+    var v = String(raw.value || '');
+
+    if (!v) {
+      mostrarError(id, 'La contraseña es obligatoria.');
+      return false;
+    }
+    if (v.length < PASS_MIN) {
+      mostrarError(id, 'Mínimo ' + PASS_MIN + ' caracteres.');
+      return false;
+    }
+    if (v.length > PASS_MAX) {
+      mostrarError(id, 'Máximo ' + PASS_MAX + ' caracteres.');
+      return false;
+    }
+    if (esRegistro) {
+      if (!/[A-ZÁÉÍÓÚÜÑ]/.test(v)) {
+        mostrarError(id, 'Debe incluir al menos una mayúscula.');
+        return false;
+      }
+      if (!/[a-záéíóúüñ]/.test(v)) {
+        mostrarError(id, 'Debe incluir al menos una minúscula.');
+        return false;
+      }
+      if (!/[0-9]/.test(v)) {
+        mostrarError(id, 'Debe incluir al menos un número.');
+        return false;
+      }
+      if (!/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ]/.test(v)) {
+        mostrarError(id, 'Debe incluir al menos un símbolo (ej. ! @ # $).');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function validarConfirmacion(idPass, idPass2) {
+    limpiarError(idPass2);
+    var a = util.el(idPass);
+    var b = util.el(idPass2);
+    if (!a || !b) return false;
+    if (a.value !== b.value) {
+      mostrarError(idPass2, 'Las contraseñas no coinciden.');
+      return false;
+    }
+    return true;
+  }
+
+  function validarLogin() {
+    var okCorreo = validarCorreoUnivalle('correo-login');
+    var okPass = validarContrasena('contrasena-login', false);
+    return okCorreo && okPass;
+  }
+
+  function validarRegistro() {
+    var okNombre = validarNombre('nombre-registro', 'Nombre', true);
+    var okAp = validarNombre('apellido-registro', 'Apellido paterno', true);
+    var okAm = validarNombre('apellidoMaterno-registro', 'Apellido materno', false);
+    var okCorreo = validarCorreoUnivalle('correo-registro');
+    var okPass = validarContrasena('contrasena-registro', true);
+    var okPass2 = validarConfirmacion('contrasena-registro', 'contrasena2-registro');
+    return okNombre && okAp && okAm && okCorreo && okPass && okPass2;
+  }
+
+  /* ── EVENTOS (solo si los elementos existen) ───────============================= */
   function conectarFormularios() {
     var formularioLogin = util.el('formulario-login');
     var formularioRegistro = util.el('formulario-registro');
@@ -170,21 +355,16 @@
     formularioLogin.addEventListener('submit', function (e) {
       e.preventDefault();
       limpiarTodosLosErrores();
-      var ok = true;
-      var correo = util.el('correo-login').value.trim();
+      ocultarAlertaAuth();
+
+      if (!validarLogin()) {
+        mostrarAlertaAuth('Revisa los campos. Solo correos @univalle.edu.bo');
+        return;
+      }
+
+      var correo = normalizarCorreo(util.el('correo-login').value);
       var pass = util.el('contrasena-login').value;
 
-      if (!correo) { mostrarError('correo-login', UniMap.i18n.t('err.correoObligatorio')); ok = false; }
-      else if (!util.validarCorreo(correo)) { mostrarError('correo-login', UniMap.i18n.t('err.correoInvalido')); ok = false; }
-
-      if (!pass) { mostrarError('contrasena-login', UniMap.i18n.t('err.passObligatoria')); ok = false; }
-      else if (pass.length < 6) { mostrarError('contrasena-login', UniMap.i18n.t('err.min6')); ok = false; }
-
-      if (!ok) return;
-
-      /* Comprueba solo cuentas que el usuario haya registrado el
-         mismo con el backend apagado (nada inventado por nosotros).
-         `sinBackend` avisa de que la fuente de cuentas es la BD. */
       function loginLocal(mensajeSinBackend) {
         var usuarios = obtenerUsuarios();
         var encontrado = null;
@@ -194,22 +374,16 @@
             break;
           }
         }
-
         if (!encontrado) {
-          mostrarError('contrasena-login', UniMap.i18n.t(mensajeSinBackend || 'err.credenciales'));
+          var msg = UniMap.i18n.t(mensajeSinBackend || 'err.credenciales');
+          mostrarError('contrasena-login', msg);
+          mostrarAlertaAuth(msg);
           return;
         }
-
         guardarSesion(encontrado);
         window.location.href = RUTA_MAPA;
       }
 
-      /* 1) Intento con el backend Laravel: si la cuenta existe ahi se
-            guarda el token (Sanctum) que usa el panel de administracion
-            para sincronizar los cambios con la base de datos.
-         2) Si el backend esta apagado no hay cuentas que comprobar
-            (la unica fuente de usuarios es la base de datos): se
-            comprueba la lista local y, si esta vacia, se avisa. */
       if (UniMap.api && UniMap.api.activa()) {
         UniMap.api.iniciarSesion(correo, pass).then(function (res) {
           if (res.ok) {
@@ -229,28 +403,23 @@
     formularioRegistro.addEventListener('submit', function (e) {
       e.preventDefault();
       limpiarTodosLosErrores();
-      var ok = true;
+      ocultarAlertaAuth();
+
+      if (!validarRegistro()) {
+        mostrarAlertaAuth('Revisa los campos marcados. El correo debe ser @univalle.edu.bo');
+        return;
+      }
+
       var nombre = util.el('nombre-registro').value.trim();
       var apellido = util.el('apellido-registro').value.trim();
-      var correo = util.el('correo-registro').value.trim();
+      var correo = normalizarCorreo(util.el('correo-registro').value);
       var pass = util.el('contrasena-registro').value;
-      var pass2 = util.el('contrasena2-registro').value;
-
-      if (!nombre || nombre.length < 2) { mostrarError('nombre-registro', nombre ? UniMap.i18n.t('err.min2') : UniMap.i18n.t('err.nombre')); ok = false; }
-      if (!apellido || apellido.length < 2) { mostrarError('apellido-registro', apellido ? UniMap.i18n.t('err.min2') : UniMap.i18n.t('err.apellido')); ok = false; }
-      if (!correo) { mostrarError('correo-registro', UniMap.i18n.t('err.correoRequerido')); ok = false; }
-      else if (!util.validarCorreo(correo)) { mostrarError('correo-registro', UniMap.i18n.t('err.correoInvalido')); ok = false; }
-      if (!pass) { mostrarError('contrasena-registro', UniMap.i18n.t('err.passRequerida')); ok = false; }
-      else if (pass.length < 6) { mostrarError('contrasena-registro', UniMap.i18n.t('err.min6')); ok = false; }
-      if (!pass2) { mostrarError('contrasena2-registro', UniMap.i18n.t('err.confirma')); ok = false; }
-      else if (pass !== pass2) { mostrarError('contrasena2-registro', UniMap.i18n.t('err.noCoinciden')); ok = false; }
-
-      if (!ok) return;
 
       var usuarios = obtenerUsuarios();
       for (var u = 0; u < usuarios.length; u++) {
         if (usuarios[u].correo === correo) {
           mostrarError('correo-registro', UniMap.i18n.t('err.yaRegistrado'));
+          mostrarAlertaAuth('Ese correo ya está registrado.');
           return;
         }
       }
@@ -265,17 +434,12 @@
           contrasena: pass,
           fechaRegistro: new Date().toISOString()
         };
-
         usuarios.push(nuevo);
         guardarUsuarios(usuarios);
         guardarSesion(nuevo);
         window.location.href = RUTA_MAPA;
       }
 
-      /* Intento en el backend Laravel. El backend asigna automaticamente
-         el rol 'personal' (no se elige desde el formulario) y exige
-         contrasenas de 8+ caracteres. Si no hay backend, el registro
-         queda en local con rol 'personal'. */
       if (UniMap.api && UniMap.api.activa() && pass.length >= 8) {
         var campoMaterno = util.el('apellidoMaterno-registro');
         UniMap.api.registrarse({

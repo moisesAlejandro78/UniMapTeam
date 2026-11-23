@@ -639,3 +639,39 @@ html, body.auth-body {
     padding: 24px 32px 40px !important;
   }
 }
+
+.auth-form input.error {
+  border-color: #f87171 !important;
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.25);
+}
+/* Alerta general amarilla (como "Enviando...") */
+.auth-alerta {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  line-height: 1.35;
+}
+.auth-alerta.hidden {
+  display: none;
+}
+
+/* Mensaje bajo cada campo */
+.auth-form .error-msg,
+.auth-form .error-msg-alerta {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fbbf24;
+  min-height: 1.1em;
+}
+
+.auth-form input.error {
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
+}
