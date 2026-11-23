@@ -261,6 +261,7 @@
           favoritos: 'boton-favoritos',
           tema: 'boton-tema',
           idioma: null,
+          ubicacion: 'boton-ubicacion',
           editar: 'boton-editar-posiciones'
         };
         if (k === 'idioma') {
