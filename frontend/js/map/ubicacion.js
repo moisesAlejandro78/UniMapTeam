@@ -13,25 +13,46 @@
        Esquina SO y NE del área que cubre el plano 800×600.
        Valores de ejemplo para Univalle (La Paz); cámbialos
        midiendo 2 puntos conocidos en el campus. */
-    var GEO = {
-        /* Calibración aprox. Univalle (ajustada con GPS real del usuario)
-           Amplía/reduce tras probar en el campus caminando 2–3 puntos conocidos */
-        minLng: -68.1210,
-        maxLng: -68.1175,
-        minLat: -16.5050,
-        maxLat: -16.5015,
-        anchoPlano: 800,
-        altoPlano: 600
+    /* ── Calibración por torre (GPS real) ─────────────────
+   TI: medido en campus ~ -16.5033, -68.1193
+   TA: pendiente (cuando midas, rellena GEO_TA)         */
+    var GEO_TI = {
+        minLng: -68.1205,
+        maxLng: -68.1180,
+        minLat: -16.5045,
+        maxLat: -16.5020
     };
+
+    /* Cuando midas Torre Antigua, completa estos 4 números */
+    var GEO_TA = {
+        minLng: -68.1205,  /* provisional: mismo bloque hasta medir TA */
+        maxLng: -68.1180,
+        minLat: -16.5045,
+        maxLat: -16.5020
+    };
+
+    /* Rectángulo activo = unión de ambas (sirve también en TA+TI) */
+    function geoActivo() {
+        var a = GEO_TA;
+        var b = GEO_TI;
+        return {
+            minLng: Math.min(a.minLng, b.minLng),
+            maxLng: Math.max(a.maxLng, b.maxLng),
+            minLat: Math.min(a.minLat, b.minLat),
+            maxLat: Math.max(a.maxLat, b.maxLat),
+            anchoPlano: 800,
+            altoPlano: 600
+        };
+    }
 
     var watchId = null;
     var ultimaPos = null;
     var METROS_RECALCULAR = 4; /* recalcular ruta si te moviste ~4 m */
 
     function geoAPlano(lat, lng) {
+        var GEO = geoActivo();
         var x = ((lng - GEO.minLng) / (GEO.maxLng - GEO.minLng)) * GEO.anchoPlano;
         var y = ((GEO.maxLat - lat) / (GEO.maxLat - GEO.minLat)) * GEO.altoPlano;
-        /* Limitar al plano */
         if (x < 20) x = 20;
         if (x > GEO.anchoPlano - 20) x = GEO.anchoPlano - 20;
         if (y < 20) y = 20;
@@ -143,7 +164,8 @@
         if (fab) fab.classList.remove('activo');
     }
     function dentroDelCampus(lat, lng) {
-        var m = 0.002; /* ~200 m de margen */
+        var GEO = geoActivo();
+        var m = 0.0015; /* ~150 m de margen por imprecisión indoor */
         return lng >= GEO.minLng - m && lng <= GEO.maxLng + m &&
             lat >= GEO.minLat - m && lat <= GEO.maxLat + m;
     }
