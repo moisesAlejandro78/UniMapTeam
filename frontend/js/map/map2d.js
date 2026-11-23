@@ -839,7 +839,7 @@ lienzo.addEventListener('pointermove', function (e) {
      no se comporta como hover */
   if (estado.estaArrastrando) return;
 
-  /* ── Hover sobre un espacio ── */
+    /* ── Hover sobre un espacio ── */
   var p = puntoEnLienzo(e);
   var mundo = pantallaAMundo(p.x, p.y);
   var encontrado = buscarEspacioEn(mundo.x, mundo.y);
@@ -849,8 +849,13 @@ lienzo.addEventListener('pointermove', function (e) {
     var interactuable = encontrado && esInteractable(encontrado);
     lienzo.style.cursor = interactuable ? 'pointer' : 'grab';
     dibujar();
-    if (interactuable) UniMap.tooltip.mostrar(encontrado, e.clientX, e.clientY);
-    else UniMap.tooltip.ocultar();
+    if (interactuable) {
+      if (UniMap.tooltip.cancelarOcultar) UniMap.tooltip.cancelarOcultar();
+      UniMap.tooltip.mostrar(encontrado, e.clientX, e.clientY);
+    } else if (!estado.espacioSeleccionado) {
+      /* No cerrar al instante: da tiempo a entrar en la ficha HTML */
+      UniMap.tooltip.ocultar(false);
+    }
   }
 });
 
@@ -909,11 +914,10 @@ lienzo.addEventListener('pointerleave', function () {
   estado.espacioResaltado = null;
   dibujar();
 
-  /* La ficha seleccionada se mantiene; solo se cierra la de hover */
+  /* Ficha fijada por clic: no cerrar */
   if (estado.espacioSeleccionado) return;
-  var elementoTooltip = util.el('tooltip-mapa');
-  clearTimeout(elementoTooltip._tooltipTimeout);
-  elementoTooltip._tooltipTimeout = setTimeout(UniMap.tooltip.ocultar, 1500);
+
+  if (UniMap.tooltip) UniMap.tooltip.ocultar(false);
 });
 
 lienzo.addEventListener('click', function (e) {

@@ -123,6 +123,7 @@
     return fotoPorTipo(espacio.tipo);
   }
   function mostrar(espacio, clientX, clientY) {
+    cancelarOcultar();
     if (!elemento) return;
 
     ultimo = { espacio: espacio, x: clientX, y: clientY };
@@ -205,7 +206,7 @@
         btnFav.onclick = null;
       }
     }
-        var btnReporte = document.getElementById('tooltip-reportar');
+    var btnReporte = document.getElementById('tooltip-reportar');
     if (btnReporte) {
       btnReporte.onclick = function (e) {
         e.stopPropagation();
@@ -215,7 +216,7 @@
       };
     }
 
-        conectarAcciones(espacio);
+    conectarAcciones(espacio);
 
     /* Posicion relativa al contenedor del mapa */
     var contenedor = util.el('contenedor-mapa');
@@ -263,7 +264,7 @@
   }
 
   /* Botones HU-10 (ruta) y HU-11 (QR) de la ficha */
-    function conectarAcciones(espacio) {
+  function conectarAcciones(espacio) {
     var btnRuta = util.el('tooltip-ruta');
     if (btnRuta) {
       btnRuta.onclick = function (e) {
@@ -280,13 +281,38 @@
     }
   }
 
-  function ocultar() {
-    if (elemento) elemento.classList.add('hidden');
-    ultimo = null;
+  var ocultarTimer = null;
+
+  function cancelarOcultar() {
+    if (ocultarTimer) {
+      clearTimeout(ocultarTimer);
+      ocultarTimer = null;
+    }
   }
 
-  /* Evitar que el tooltip se oculte al hacer clic en el */
+  function ocultar(inmediato) {
+    cancelarOcultar();
+    if (inmediato === true) {
+      if (elemento) elemento.classList.add('hidden');
+      ultimo = null;
+      return;
+    }
+    ocultarTimer = setTimeout(function () {
+      if (elemento) elemento.classList.add('hidden');
+      ultimo = null;
+      ocultarTimer = null;
+    }, 350);
+  }
+
+  /* Mientras el ratón está DENTRO de la ficha, no cerrar */
   if (elemento) {
+    elemento.addEventListener('mouseenter', function () {
+      cancelarOcultar();
+    });
+    elemento.addEventListener('mouseleave', function () {
+      /* Solo cerrar si no hay ficha fijada por clic */
+      if (!estado.espacioSeleccionado) ocultar(false);
+    });
     elemento.addEventListener('click', function (e) {
       e.stopPropagation();
     });
@@ -302,6 +328,7 @@
   UniMap.tooltip = {
     mostrar: mostrar,
     ocultar: ocultar,
+    cancelarOcultar: cancelarOcultar,
     obtenerDocente: obtenerDocente,
     etiquetaTipo: etiquetaTipo,
     atencion: atencion,
