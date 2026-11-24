@@ -20,9 +20,9 @@
    ========================================================= */
 UniMap.datos.edificios = [
   { id: 1, nombre: 'Torre Antigua', descripcion: 'Aulas, laboratorios y oficinas historicas',
-    pisos: [4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17] },
+    pisos: [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17] },
   { id: 2, nombre: 'Torre Innovacion', descripcion: 'Espacios de investigacion y innovacion',
-    pisos: [0, 4, 6, 7, 8, 9, 10, 11] }
+    pisos: [0,3, 4, 6, 7, 8, 9, 10, 11] }
 ];
 UniMap.datos.diasSemana = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
@@ -36,8 +36,8 @@ UniMap.datos.totalPisos = 21;
 UniMap.datos.MODELOS_PISOS = [
   { archivo: 'TorreAntiguaBanos.glb', edificio: 1, pisos: [4, 6, 8, 10] },
   { archivo: 'TorreAntiguaConexion.glb', edificio: 1, pisos: [5, 9] },
-  { archivo: 'TorreAntiguaCursos.glb', edificio: 1, pisos: [7, 11, 13, 14, 15, 16, 17] },
-  { archivo: 'TorreInnovacionCasilleros_v2.glb', edificio: 2, pisos: [4, 7, 8, 9, 11] },
+  { archivo: 'TorreAntiguaCursos.glb', edificio: 1, pisos: [3,7, 11, 13, 14, 15, 16, 17] },
+  { archivo: 'TorreInnovacionCasilleros_v2.glb', edificio: 2, pisos: [3, 4, 7, 8, 9, 11] },
   { archivo: 'TorreInnovacionConexion_v2.glb', edificio: 2, pisos: [6, 10] },
   { archivo: 'planta-baja-torre-b.fbx', edificio: 2, pisos: [0] }
 ];
