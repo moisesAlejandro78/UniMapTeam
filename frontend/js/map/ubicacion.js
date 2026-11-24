@@ -14,36 +14,35 @@
        Valores de ejemplo para Univalle (La Paz); cámbialos
        midiendo 2 puntos conocidos en el campus. */
     /* ── Calibración por torre (GPS real) ─────────────────
-   TI: medido en campus ~ -16.5033, -68.1193
-   TA: pendiente (cuando midas, rellena GEO_TA)         */
-    var GEO_TI = {
-        minLng: -68.1205,
-        maxLng: -68.1180,
-        minLat: -16.5045,
-        maxLat: -16.5020
-    };
+   /* TI — cluster GPS ~ -16.5033, -68.1193 */
+var GEO_TI = {
+  minLng: -68.1208,
+  maxLng: -68.1178,
+  minLat: -16.5050,
+  maxLat: -16.5018
+};
 
-    /* Cuando midas Torre Antigua, completa estos 4 números */
-    var GEO_TA = {
-        minLng: -68.1205,  /* provisional: mismo bloque hasta medir TA */
-        maxLng: -68.1180,
-        minLat: -16.5045,
-        maxLat: -16.5020
-    };
+/* TA — cluster GPS ~ -16.5035, -68.1198 */
+var GEO_TA = {
+  minLng: -68.1215,
+  maxLng: -68.1180,
+  minLat: -16.5055,
+  maxLat: -16.5018
+};
 
     /* Rectángulo activo = unión de ambas (sirve también en TA+TI) */
     function geoActivo() {
-        var a = GEO_TA;
-        var b = GEO_TI;
-        return {
-            minLng: Math.min(a.minLng, b.minLng),
-            maxLng: Math.max(a.maxLng, b.maxLng),
-            minLat: Math.min(a.minLat, b.minLat),
-            maxLat: Math.max(a.maxLat, b.maxLat),
-            anchoPlano: 800,
-            altoPlano: 600
-        };
-    }
+  var a = GEO_TA;
+  var b = GEO_TI;
+  return {
+    minLng: Math.min(a.minLng, b.minLng),
+    maxLng: Math.max(a.maxLng, b.maxLng),
+    minLat: Math.min(a.minLat, b.minLat),
+    maxLat: Math.max(a.maxLat, b.maxLat),
+    anchoPlano: 800,
+    altoPlano: 600
+  };
+}
 
     var watchId = null;
     var ultimaPos = null;
